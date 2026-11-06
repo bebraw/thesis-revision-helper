@@ -1,3 +1,5 @@
+import { createScrollSync } from "./scroll-sync.js";
+
 export type WorkspaceRequest = (path: string, body?: Record<string, unknown>) => Promise<unknown>;
 
 interface Paragraph {
@@ -710,8 +712,36 @@ function mountWorkspace(): void {
   let treeKey = "";
   let outlineKey = "";
   let recoveryKey = "";
+  let composing = false;
+  let trackedDocument: DocumentData | null = null;
+  let visibleIndex: number | null = null;
+  let visibleButton: Element | null = null;
+  function showVisibleParagraph(index: number | null): void {
+    visibleIndex = index;
+    const button = index === null ? null : outline.children.item(index);
+    if (button === visibleButton) return;
+    visibleButton?.removeAttribute("aria-current");
+    visibleButton = button;
+    visibleButton?.setAttribute("aria-current", "location");
+  }
+  const scrollSync = createScrollSync(source, showVisibleParagraph);
   const session = loadSession();
   const workspace = createWorkspace((path, body) => browserRequest(session, path, body), render);
+  function syncScrollTracking(): void {
+    const state = workspace.state;
+    if (state.document && !state.dirty && !composing && state.text === state.document.text && source.value === state.text) {
+      if (trackedDocument !== state.document) {
+        scrollSync.clear();
+        showVisibleParagraph(null);
+        trackedDocument = state.document;
+        scrollSync.update(state.document.text, state.document.paragraphs);
+      }
+    } else if (trackedDocument) {
+      trackedDocument = null;
+      scrollSync.clear();
+      showVisibleParagraph(null);
+    }
+  }
   void session
     .then((data) => {
       element("provider-status").textContent = data.provider
@@ -736,6 +766,7 @@ function mountWorkspace(): void {
     element("diagnostics").textContent = state.document?.diagnostics.join(" ") ?? "";
     source.disabled = state.busy || !state.document;
     if (source.value !== state.text) source.value = state.text;
+    syncScrollTracking();
     const newTreeKey = JSON.stringify([state.document?.files, state.document?.path]);
     if (treeKey !== newTreeKey) {
       treeKey = newTreeKey;
@@ -755,6 +786,7 @@ function mountWorkspace(): void {
     const newOutlineKey = JSON.stringify([state.document?.paragraphs, state.selected, state.purpose, state.analysisStatus, state.dirty]);
     if (outlineKey !== newOutlineKey) {
       outlineKey = newOutlineKey;
+      visibleButton = null;
       outline.replaceChildren();
       for (const [index, paragraph] of (state.document?.paragraphs ?? []).entries()) {
         const button = document.createElement("button");
@@ -779,6 +811,7 @@ function mountWorkspace(): void {
         });
         outline.append(button);
       }
+      showVisibleParagraph(visibleIndex);
     }
     const newRecoveryKey = JSON.stringify(state.savedRevisions);
     if (newRecoveryKey !== recoveryKey) {
@@ -821,8 +854,16 @@ function mountWorkspace(): void {
     void workspace.open(input("project-path").value.trim());
   });
   source.addEventListener("input", () => workspace.updateSource(source.value, source.selectionStart));
-  source.addEventListener("compositionstart", () => workspace.setComposing(true));
-  source.addEventListener("compositionend", () => workspace.setComposing(false));
+  source.addEventListener("compositionstart", () => {
+    composing = true;
+    workspace.setComposing(true);
+    syncScrollTracking();
+  });
+  source.addEventListener("compositionend", () => {
+    composing = false;
+    workspace.setComposing(false);
+    syncScrollTracking();
+  });
   source.addEventListener("select", () => {
     const state = workspace.state;
     if (state.dirty) return;

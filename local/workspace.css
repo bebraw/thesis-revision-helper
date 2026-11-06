@@ -203,6 +203,9 @@ main {
 .outline-item {
   border-bottom: 1px solid #e4e8e4;
 }
+.outline-item[aria-current="location"] {
+  box-shadow: inset 3px 0 #365b90;
+}
 .outline-label,
 .outline-summary {
   display: block;

@@ -6,6 +6,10 @@ test("edits source and keeps the student draft separate through review and undo"
   const html = await readFile(new URL("../../local/workspace.html", import.meta.url), "utf8");
   const css = await readFile(new URL("../../local/workspace.css", import.meta.url), "utf8");
   const sourceCode = await readFile(new URL("./workspace.ts", import.meta.url), "utf8");
+  const scrollCode = await readFile(new URL("./scroll-sync.ts", import.meta.url), "utf8");
+  const scrollScript = typescript.transpileModule(scrollCode, {
+    compilerOptions: { target: typescript.ScriptTarget.ES2022, module: typescript.ModuleKind.ESNext },
+  }).outputText;
   const script = typescript.transpileModule(sourceCode, {
     compilerOptions: { target: typescript.ScriptTarget.ES2022, module: typescript.ModuleKind.ESNext },
   }).outputText;
@@ -37,6 +41,7 @@ test("edits source and keeps the student draft separate through review and undo"
     if (url.pathname === "/") return route.fulfill({ contentType: "text/html", body: html });
     if (url.pathname === "/workspace.css") return route.fulfill({ contentType: "text/css", body: css });
     if (url.pathname === "/assets/browser/workspace.js") return route.fulfill({ contentType: "text/javascript", body: script });
+    if (url.pathname === "/assets/browser/scroll-sync.js") return route.fulfill({ contentType: "text/javascript", body: scrollScript });
     if (url.pathname === "/api/session")
       return route.fulfill({ json: { token: "local-token", provider: { name: "Cloudflare Workers AI", model: "example-model" } } });
     if (url.pathname === "/api/revisions")

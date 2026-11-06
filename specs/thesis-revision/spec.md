@@ -64,6 +64,7 @@ Use specific descriptions such as “Explains why the benchmark represents the t
 2. After a short pause, analyse changed paragraphs and relevant surrounding context.
 3. Refresh purposes and section flow observations only if results still match their input dependencies.
 4. Clicking an outline entry navigates to source; selecting a source paragraph selects its outline entry without stealing editor focus.
+5. Scrolling the manuscript highlights the outline entry at the visible reading position. This indicator is separate from the selected revision target: scrolling does not move the caret, change the selection, or request model analysis. When source offsets are temporarily stale during editing or input-method composition, hide the reading-position indicator until the source and parsed ranges match again.
 
 Students do not approve each outline update. Automatically generated interpretations remain visibly attributable to AI.
 
