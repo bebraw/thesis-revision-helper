@@ -50,6 +50,7 @@
     "test:affected": "node ./scripts/run-affected-tests.mjs",
     "test:coverage": "node ./scripts/run-coverage-gate.mjs",
     "test:tooling": "node --test scripts/*.test.mjs",
+    "tutorial": "node ./scripts/run-tutorial.mjs",
     "typecheck": "node ./node_modules/typescript-7/bin/tsc --noEmit",
     "worker:client-guard": "node ./scripts/assert-no-worker-client-scripts.mjs",
     "worker:node-import-guard": "node ./scripts/assert-no-worker-node-imports.mjs"

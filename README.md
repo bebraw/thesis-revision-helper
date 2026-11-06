@@ -65,6 +65,8 @@ Each linked `SKILL.md` is the source of truth for boundaries and workflow detail
 
 ## Local Application
 
+Run `npm run tutorial` for a fresh sample copy and a local app session, then follow the [sample project tutorial](docs/tutorial.md) for a guided first run with or without AI feedback. Use `nvm use` and `npm install` first if the project is not set up yet.
+
 Use the pinned Node version with `nvm use`, install the existing dependencies with `npm install`, then run `npm run app`. Open `http://127.0.0.1:8789` and enter the path to a local project directory. The service binds only to loopback. Source and draft editing work without a model connection; analysis and proposals show an unavailable state until a provider is configured.
 
 Use this single-user application without simultaneously editing its source files in another process. Changes detected between operations produce a conflict. The accepted concurrent path-replacement limitation is described in the [product spec](specs/thesis-revision/spec.md).

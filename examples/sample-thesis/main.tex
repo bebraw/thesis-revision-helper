@@ -1,0 +1,38 @@
+\documentclass{article}
+
+\begin{document}
+
+\section{Context}
+
+This fictional study considers how a researcher can find notes from a completed
+interview study. The notes remain in ordinary text files, but the reason for a
+particular design decision can be hard to find when related passages are spread
+across several files.
+
+The project explores a small local index that helps the researcher find those
+passages without moving the notes into a separate online service. The index is
+an aid to navigation; the original notes remain the source of the evidence.
+
+\section{Prototype}
+
+The prototype reads a selected folder and stores a searchable index of the text.
+Each result points back to the file and passage where the matching words appear.
+The researcher can then read the surrounding notes before interpreting a match.
+
+The search was making it easier to find the notes, and it was useful for
+helping the researcher to find things. The prototype presents a match as
+\emph{a starting point for inspection}, rather than a conclusion about what
+the interview participant meant.
+
+\section{Evaluation}\label{sec:evaluation}
+For this example, the researcher prepared \(n = 12\) searches against a
+fictional set of notes. Before running a search, they identified the passage
+that should answer it. The evaluation records whether that passage appears in
+the results, not whether the interpretation of the passage is correct.
+
+The match rate is \(r = m/n\), where \(m\) is the number of searches that
+return their prepared target. As described in Section~\ref{sec:evaluation},
+this measure applies to the prepared searches and does not establish that the
+prototype improves every research workflow.
+
+\end{document}
