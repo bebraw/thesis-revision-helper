@@ -1,6 +1,6 @@
 # ADR-030: Reserve Full Mutation CI For GitHub
 
-**Status:** Implemented
+**Status:** Superseded by [ADR-072](./ADR-072-make-mutation-diagnostic-only.md)
 
 **Date:** 2026-06-01
 

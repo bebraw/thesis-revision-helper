@@ -102,7 +102,7 @@ Drafts and related project data are stored separately from the manuscript under 
 - Install the pinned Playwright browser with `npm run playwright:install`.
 - Run unit tests from colocated `src/**/*.test.ts` files with `npm test`.
 - Run browser tests from colocated `src/**/*.e2e.ts` files with `npm run e2e`.
-- Run mutation tests against runtime `src/**/*.ts` files with `npm run mutation`.
+- Optionally run mutation tests against runtime `src/**/*.ts` files with `npm run mutation`; mutation testing is not a local or CI quality gate.
 
 ## Capability Kits
 

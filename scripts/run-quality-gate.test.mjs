@@ -1,15 +1,27 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { parse } from "yaml";
 
-import { deepQualityGateSteps, formatDuration, runQualityGate, selectQualityGateSteps, startHeartbeat } from "./run-quality-gate.mjs";
+import { formatDuration, runQualityGate, startHeartbeat } from "./run-quality-gate.mjs";
 
-test("selects baseline and deep quality-gate phases", () => {
-  assert.deepEqual(selectQualityGateSteps([]), [
-    { label: "fast checks", script: "quality:gate:fast" },
-    { label: "browser tests", script: "e2e" },
-    { label: "capability kit verification", script: "capabilities:verify" },
-  ]);
-  assert.equal(selectQualityGateSteps(["--deep"]), deepQualityGateSteps);
+test("offers mutation testing only as a separately invoked diagnostic", async () => {
+  const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+
+  assert.equal(packageJson.scripts["quality:gate:deep"], undefined);
+  assert.equal(packageJson.scripts.mutation, "stryker run");
+  assert.equal(packageJson.scripts["mutation:incremental"], "stryker run --incremental");
+});
+
+test("CI retains fast and browser checks without scheduling mutation testing", async () => {
+  const workflow = parse(await readFile(new URL("../.github/workflows/ci.yml", import.meta.url), "utf8"));
+  assert.ok(workflow.jobs["quality-fast"]);
+  assert.ok(workflow.jobs["quality-browser"]);
+  assert.equal(workflow.jobs["quality-mutation"], undefined);
+  const steps = Object.values(workflow.jobs).flatMap((job) => job.steps);
+  assert.ok(steps.some((step) => step.run === "npm run quality:gate:fast"));
+  assert.ok(steps.some((step) => step.run === "npm run e2e"));
+  assert.ok(steps.every((step) => typeof step.run !== "string" || !/npm run mutation(?=\s|$)/.test(step.run)));
 });
 
 test("runs every quality-gate phase with visible transitions", async () => {
@@ -34,23 +46,6 @@ test("runs every quality-gate phase with visible transitions", async () => {
   assert.deepEqual(scripts, ["quality:gate:fast", "e2e", "capabilities:verify"]);
   assert.match(logs[0], /1\/3 Starting fast checks/);
   assert.match(logs.at(-1), /Completed all 3 phases/);
-});
-
-test("adds incremental mutation to the deep quality gate", async () => {
-  const scripts = [];
-
-  const exitCode = await runQualityGate({
-    heartbeatMs: 60_000,
-    log: () => {},
-    run: async (script) => {
-      scripts.push(script);
-      return 0;
-    },
-    steps: deepQualityGateSteps,
-  });
-
-  assert.equal(exitCode, 0);
-  assert.deepEqual(scripts, ["quality:gate:fast", "e2e", "capabilities:verify", "mutation:incremental"]);
 });
 
 test("stops after the first failing phase", async () => {

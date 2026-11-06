@@ -6,6 +6,8 @@
 
 **Amends:** [ADR-009](./ADR-009-split-fast-and-browser-verification.md), [ADR-030](./ADR-030-reserve-full-mutation-ci-for-github.md)
 
+**Amended by:** [ADR-072](./ADR-072-make-mutation-diagnostic-only.md)
+
 ## Context
 
 The browser and full mutation jobs run for every pull request and push to `main`. Recent CI measurements showed that the mutation job was the workflow critical path at roughly 109 seconds, including a 73-second mutation step and a 19-second dependency install. Documentation, specs, template update packs, formatter metadata, and agent skill material cannot affect the Worker runtime or its browser and mutation results, yet changes limited to those areas still paid the full cost.

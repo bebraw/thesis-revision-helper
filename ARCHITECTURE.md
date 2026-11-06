@@ -54,14 +54,14 @@ The following constraints describe the accepted product architecture; the existi
 - The repo-managed `pre-push` Git hook should run affected-file guardrails before code is pushed.
 - Formatting, Oxlint correctness checks, type checking, unit tests, and end-to-end tests are part of the baseline quality gate.
 - The fast and affected quality paths enforce extreme source-file and flat-directory limits through `npm run quality:structure`; Fallow remains the richer advisory layer for coupling, churn, complexity, and refactoring evidence.
-- Keep incremental mutation testing in an explicit deep local gate instead of making it an unconditional baseline phase. GitHub remains responsible for the clean full mutation signal on runtime-relevant changes.
+- Keep mutation testing available only as an explicitly invoked diagnostic; do not run it in local quality gates or GitHub CI. [ADR-072](docs/adrs/implemented/ADR-072-make-mutation-diagnostic-only.md) records the project-specific decision.
 - Keep duplicated `.github/skills/` content and deliberately vendored skill references outside the Prettier baseline. Continue formatting project-owned skill entry points, specs, ADRs, and documentation.
 - Cache successful Prettier checks by file content under ignored `.cache/prettier` so repeated local gates avoid unchanged files without trusting timestamps.
 - Keep Oxlint focused on its default correctness rules unless additional rule categories are adopted through an explicit, documented decision. Oxlint does not replace Prettier or TypeScript checking.
 - Fallow codebase diagnostics use best-effort type-aware analysis for exact-symbol evidence, public-signature coupling, complexity, duplication, dependency hygiene, and cleanup evidence; they remain advisory and do not replace the baseline quality gate.
 - Affected-file guardrails should scope checks to changed files when the underlying tool supports it and fall back to project-level checks only when needed.
-- Remote browser and mutation jobs should skip dependency installation and execution when every changed file is in a documented non-runtime area. Unknown paths and unavailable change ranges must run the expensive gates.
-- Keep Stryker at 50% concurrency for responsive local work, while the isolated GitHub mutation job may use 100% of its runner's available parallelism.
+- The remote browser job should skip dependency installation and execution when every changed file is in a documented non-runtime area. Unknown paths and unavailable change ranges must run the browser gate.
+- Keep the optional local Stryker diagnostic at 50% concurrency for responsive local work.
 - The fast quality gate should reject inline, malformed, classic, remote, and non-asset scripts, inline event-handler attributes, and `javascript:` URLs in Worker/view runtime files while allowing empty same-origin asset module tags.
 - Unit coverage for `src/` code should stay high enough that the coverage gate remains green.
 - The baseline quality gate and CI fast job should type-check and test executable capability kits through `npm run capabilities:verify`, independently of the root Vitest source glob. The browser gate should run the synthetic standard-adopter Playwright flow through `npm run capabilities:verify:browser`.
@@ -70,7 +70,7 @@ The following constraints describe the accepted product architecture; the existi
 - The canonical local CI command should emit Local CI's structured lifecycle event stream so agents can track run, job, step, pause, and completion state without relying on animated terminal output. Agent command wrappers must pass that stream through live instead of buffering it until process exit.
 - Targeted commands are useful while iterating, but `npm run quality:gate` remains the readiness baseline before proposing or landing non-documentation changes.
 - Require `npm run ci:local` when a change touches GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, or when full PR or release readiness is requested. Ordinary source, test, and tooling changes do not require it when they stay outside those boundaries.
-- Use `npm run quality:gate:deep` when local assertion-strength feedback is worth the additional mutation-testing cost.
+- Run `npm run mutation` or `npm run mutation:incremental` explicitly when mutation feedback is worth the additional cost.
 - `npm run diagnostics:codebase` is useful during review and refactoring, but passing or failing it is not a readiness baseline by itself.
 - Documentation-only changes should use the smallest relevant checks unless they alter executable instructions or workflow contracts.
 

@@ -64,7 +64,7 @@ ADRs are grouped by lifecycle status:
 | [ADR-027](./implemented/ADR-027-lock-local-agent-ci-installs.md)                       | Superseded  | Allow parallel local Agent CI jobs with a locked warm dependency install.                         |
 | [ADR-028](./implemented/ADR-028-use-incremental-local-mutation-gate.md)                | Superseded  | Used incremental Stryker runs in the local quality gate while GitHub CI ran full mutation.        |
 | [ADR-029](./implemented/ADR-029-use-relative-stryker-concurrency.md)                   | Implemented | Use percentage-based Stryker worker concurrency instead of a fixed worker count.                  |
-| [ADR-030](./implemented/ADR-030-reserve-full-mutation-ci-for-github.md)                | Implemented | Reserve the full mutation workflow job for GitHub and skip it in local Agent CI.                  |
+| [ADR-030](./implemented/ADR-030-reserve-full-mutation-ci-for-github.md)                | Superseded  | Reserve the full mutation workflow job for GitHub and skip it in local Agent CI.                  |
 | [ADR-031](./implemented/ADR-031-use-agent-ci-warm-cache-serialization.md)              | Implemented | Use Agent CI warm-cache serialization instead of a repo-local install lock.                       |
 | [ADR-032](./implemented/ADR-032-add-template-update-packs.md)                          | Implemented | Add plain-file update packs for syncing reusable template maintenance downstream.                 |
 | [ADR-033](./implemented/ADR-033-add-advisory-fallow-diagnostics.md)                    | Implemented | Add advisory Fallow diagnostics for readability, health, duplication, and cleanup evidence.       |
@@ -73,11 +73,11 @@ ADRs are grouped by lifecycle status:
 | [ADR-036](./implemented/ADR-036-prewarm-agent-ci-dependencies-explicitly.md)           | Implemented | Prewarm dependencies once before isolated parallel Agent CI jobs start.                           |
 | [ADR-037](./implemented/ADR-037-adopt-oxlint-correctness-gate.md)                      | Implemented | Add Oxlint's default correctness rules to the fast and affected quality gates.                    |
 | [ADR-038](./implemented/ADR-038-scope-prettier-to-owned-files.md)                      | Implemented | Exclude duplicated and vendored skill material from the Prettier baseline.                        |
-| [ADR-039](./implemented/ADR-039-skip-expensive-ci-for-non-runtime-changes.md)          | Implemented | Skip remote browser and mutation work for known non-runtime-only changes.                         |
-| [ADR-040](./implemented/ADR-040-use-full-stryker-concurrency-in-ci.md)                 | Implemented | Use full available Stryker parallelism in the isolated GitHub mutation job.                       |
+| [ADR-039](./implemented/ADR-039-skip-expensive-ci-for-non-runtime-changes.md)          | Implemented | Skip remote browser work for known non-runtime-only changes; mutation policy later changed.       |
+| [ADR-040](./implemented/ADR-040-use-full-stryker-concurrency-in-ci.md)                 | Superseded  | Use full available Stryker parallelism in the isolated GitHub mutation job.                       |
 | [ADR-041](./implemented/ADR-041-cache-prettier-checks-by-content.md)                   | Implemented | Cache successful Prettier checks by content for faster repeated local gates.                      |
 | [ADR-042](./implemented/ADR-042-emit-quality-gate-progress.md)                         | Implemented | Emit named phase transitions and elapsed-time heartbeats from the full local quality gate.        |
-| [ADR-043](./implemented/ADR-043-make-local-mutation-opt-in.md)                         | Implemented | Keep mutation testing out of the baseline local gate and expose an explicit deep gate.            |
+| [ADR-043](./implemented/ADR-043-make-local-mutation-opt-in.md)                         | Superseded  | Keep mutation testing out of the baseline local gate and expose an explicit deep gate.            |
 | [ADR-044](./implemented/ADR-044-vendor-engineering-quality-skills.md)                  | Implemented | Vendor focused correctness, test, and debug skills as a reusable capability kit.                  |
 | [ADR-045](./implemented/ADR-045-adopt-type-aware-fallow-diagnostics.md)                | Implemented | Use Fallow's stable type-aware evidence and expose its interactive codebase map.                  |
 | [ADR-046](./implemented/ADR-046-scope-local-agent-ci-to-workflow-sensitive-changes.md) | Implemented | Require local Agent CI for workflow-sensitive changes and explicit full readiness checks.         |
@@ -105,6 +105,7 @@ ADRs are grouped by lifecycle status:
 | [ADR-068](./implemented/ADR-068-verify-browser-screenshot-tracing.md)                  | Implemented | Verify screenshot tracing and Linux ARM64 Lighthouse audits before distributing browser pins.     |
 | [ADR-070](./implemented/ADR-070-assume-single-user-source-editing.md)                  | Implemented | Assume no concurrent external source edits while retaining sequential conflict checks.            |
 | [ADR-071](./implemented/ADR-071-accept-local-path-replacement-race.md)                 | Implemented | Accept the local concurrent ancestor-directory replacement race for the current scope.            |
+| [ADR-072](./implemented/ADR-072-make-mutation-diagnostic-only.md)                      | Implemented | Keep mutation testing as an optional diagnostic rather than a quality gate.                       |
 
 ## Creating A New ADR
 

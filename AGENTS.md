@@ -56,7 +56,7 @@ Ask only when the action is not already authorized in the conversation. Existing
 ## Verification
 
 - Use targeted checks or `npm run quality:affected` while iterating; `npm run quality:gate:fast` provides the fast baseline. TypeScript changes require `npm run typecheck`, which is included in the baseline gates.
-- Run `npm run quality:gate` before treating a non-documentation change as ready. Use `npm run quality:gate:deep` when explicit local readiness should also include incremental mutation testing.
+- Run `npm run quality:gate` before treating a non-documentation change as ready.
 - Also run `npm run ci:local` for GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, and explicit full PR or release readiness. Use the project-local [`local-ci`](./.codex/skills/local-ci/SKILL.md) skill for this workflow and paused-runner retries before relying on remote CI.
 - Ordinary source, test, and tooling changes outside those workflow-sensitive boundaries do not require Local CI. Documentation-only changes that do not alter executable instructions or workflow contracts use the smallest relevant check, such as `npm run format:check`.
 - The local quality gates and capability checks use disposable fixtures without production access. Run them, fix failures caused by the requested change, and retry affected checks within the authorized scope. After required checks pass, repeat or broaden verification only for a new change, failure, or unresolved concern.

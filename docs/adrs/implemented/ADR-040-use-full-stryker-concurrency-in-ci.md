@@ -1,6 +1,6 @@
 # ADR-040: Use Full Stryker Concurrency In CI
 
-**Status:** Implemented
+**Status:** Superseded by [ADR-072](./ADR-072-make-mutation-diagnostic-only.md)
 
 **Date:** 2026-07-14
 

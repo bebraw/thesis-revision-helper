@@ -41,7 +41,6 @@
     "prepare": "node ./scripts/setup-git-hooks.mjs",
     "quality:affected": "node ./scripts/run-affected-guardrails.mjs",
     "quality:gate": "node ./scripts/run-quality-gate.mjs",
-    "quality:gate:deep": "node ./scripts/run-quality-gate.mjs --deep",
     "quality:gate:fast": "npm run format:check && npm run lint && npm run typecheck && npm run quality:structure && npm run worker:client-guard && npm run worker:node-import-guard && npm run test:tooling && npm run security:audit && npm run test:coverage",
     "quality:structure": "node ./scripts/check-source-shape.mjs",
     "security:audit": "npm audit --omit=dev --audit-level high",

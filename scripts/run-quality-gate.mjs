@@ -9,12 +9,6 @@ export const qualityGateSteps = [
   { label: "capability kit verification", script: "capabilities:verify" },
 ];
 
-export const deepQualityGateSteps = [...qualityGateSteps, { label: "incremental mutation tests", script: "mutation:incremental" }];
-
-export function selectQualityGateSteps(args) {
-  return args.includes("--deep") ? deepQualityGateSteps : qualityGateSteps;
-}
-
 export async function runQualityGate({
   heartbeatMs = defaultHeartbeatMs,
   log = console.log,
@@ -85,6 +79,5 @@ function runNpmScript(script) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const steps = selectQualityGateSteps(process.argv.slice(2));
-  process.exitCode = await runQualityGate({ steps });
+  process.exitCode = await runQualityGate();
 }

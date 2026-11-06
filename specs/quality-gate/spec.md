@@ -29,10 +29,9 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - **Whole-repo health diagnostics:** `npm run diagnostics:health`
 - **Interactive codebase map:** `npm run diagnostics:map`
 - **Fallow semantic policy:** best-effort type-aware analysis with exact-version packaged companion
-- **Full mutation gate:** `npm run mutation`
-- **Incremental mutation gate:** `npm run mutation:incremental`
+- **Optional full mutation diagnostic:** `npm run mutation`
+- **Optional incremental mutation diagnostic:** `npm run mutation:incremental`
 - **Full gate:** `npm run quality:gate`
-- **Deep local gate:** `npm run quality:gate:deep`
 - **Full gate progress:** named phase transitions plus a 30-second elapsed-time heartbeat while a phase is running
 - **Local workflow:** `npm run ci:local`
 - **Local workflow concurrency:** Local CI job auto-concurrency
@@ -40,7 +39,7 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - **Retry command:** `npm run ci:local:retry -- --name <runner-name>`
 - **Remote workflow:** `.github/workflows/ci.yml`
 - **Remote expensive-gate classifier:** `scripts/classify-expensive-ci.mjs`
-- **Remote expensive-gate policy:** skip browser and mutation setup/execution only when every changed file is in a documented non-runtime area; run on unknown paths or unavailable ranges
+- **Remote expensive-gate policy:** skip browser setup/execution only when every changed file is in a documented non-runtime area; run on unknown paths or unavailable ranges
 - **CI dependency install:** plain `npm ci`
 - **Action pinning:** every GitHub Actions `uses:` reference must use a full commit SHA
 - **Git hook path:** `.githooks/`
@@ -59,7 +58,7 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - **Codebase diagnostics config:** `.fallowrc.json`
 - **Mutation config:** `stryker.config.mjs`
 - **Local mutation concurrency:** 50% of available parallelism
-- **GitHub mutation concurrency:** 100% of available parallelism
+- **Mutation policy:** optional diagnostics only; no local quality gate or GitHub Actions job runs mutation testing ([ADR-072](../../docs/adrs/implemented/ADR-072-make-mutation-diagnostic-only.md))
 - **Readiness baseline:** `npm run quality:gate` for non-documentation changes
 - **Local workflow requirement:** `npm run ci:local` for changes to GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, and explicit full PR or release readiness checks
 - **Local workflow exception:** ordinary source, test, tooling, and documentation changes may skip `npm run ci:local` when they do not cross a workflow-sensitive boundary
@@ -72,7 +71,7 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - Do not spend the full formatting budget on duplicated or vendored skill documentation that the project does not author.
 - Do not replace Prettier formatting or TypeScript project checking with Oxlint.
 - Do not enable broad Oxlint style, restriction, pedantic, or type-aware rule sets without an explicit decision and compatibility review.
-- Do not treat advisory Fallow diagnostics as a replacement for formatting, type checking, runtime audit, unit coverage, browser tests, mutation testing, or Worker-specific guardrails.
+- Do not treat advisory Fallow diagnostics as a replacement for formatting, type checking, runtime audit, unit coverage, browser tests, or Worker-specific guardrails.
 - Do not treat source-shape limits as decomposition targets or proof of architectural quality.
 - Do not treat targeted iteration checks as a replacement for `npm run quality:gate` on non-documentation changes.
 - Do not require Local CI for changes that do not cross a documented workflow-sensitive boundary unless full PR or release readiness is explicitly requested.
@@ -90,14 +89,14 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - [ ] The interactive codebase map writes a self-contained HTML report under ignored `.fallow/` state without opening a browser automatically.
 - [ ] The source-shape gate rejects extreme production file and flat-directory growth while allowing exact rationale-bearing exceptions.
 - [ ] The browser gate covers the root Playwright baseline and the synthetic standard-adopter Playwright flow.
-- [ ] The full mutation gate covers runtime `src/**/*.ts` files with Stryker, Vitest, and TypeScript checking.
-- [ ] The incremental mutation gate reuses prior Stryker results for explicit deep local runs while preserving a complete mutation report.
-- [ ] The full gate runs the fast and browser gates in order without unconditionally running mutation testing.
-- [ ] The deep local gate runs the fast, browser, and incremental mutation gates in order.
-- [ ] The full and deep local gates report phase starts, completions, failures, and periodic elapsed-time heartbeats.
+- [ ] The optional full mutation diagnostic covers runtime `src/**/*.ts` files with Stryker, Vitest, and TypeScript checking.
+- [ ] The optional incremental mutation diagnostic reuses prior Stryker results while preserving a complete mutation report.
+- [ ] The full gate runs the fast and browser gates in order without running mutation testing.
+- [ ] The full gate reports phase starts, completions, failures, and periodic elapsed-time heartbeats.
 - [ ] The repo-managed `pre-push` hook runs affected-file guardrails before a push leaves the machine.
 - [ ] Local and remote CI use the same split verification model for non-documentation changes.
-- [ ] Remote browser and mutation jobs avoid dependency installation and gate execution for known non-runtime-only changes.
+- [ ] The remote browser job avoids dependency installation and gate execution for known non-runtime-only changes.
+- [ ] GitHub Actions and local quality gates do not run mutation testing.
 - [ ] Local CI is required for workflow-sensitive changes and explicit full PR or release readiness, but not for ordinary changes outside those boundaries.
 - [ ] The spec is updated in the same change set.
 
@@ -112,17 +111,16 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - `npm run quality:affected` must avoid full-repo work when affected files make a narrower check sufficient.
 - `npm run test:affected` must avoid full coverage work when affected runtime or unit test files can be checked through related or direct Vitest runs.
 - `npm run quality:gate` must continue to represent the local baseline verification path.
-- `npm run quality:gate:deep` must remain an explicit opt-in path for local mutation feedback rather than part of the baseline readiness requirement.
+- Mutation testing must remain an explicitly invoked diagnostic rather than a local quality gate or GitHub Actions job.
 - `npm run quality:gate` must preserve each child command's live output and emit a progress heartbeat at least every 30 seconds while that command is still running.
-- `npm run quality:gate:deep` must preserve each child command's live output and emit a progress heartbeat at least every 30 seconds while that command is still running.
 - `npm run diagnostics:codebase` must remain advisory and must not be required by the baseline readiness path.
 - Fallow diagnostics must use `--no-cache` in repo scripts so normal diagnostic runs do not create a persistent `.fallow/` cache.
 - `npm run mutation` must fail when the mutation score is below the configured break threshold.
 - `npm run mutation:incremental` must fail when the resulting mutation score is below the configured break threshold.
 - `npm install` must keep the repo-managed `pre-push` hook configured without requiring extra setup steps.
 - The CI workflow must cancel superseded runs for the same ref.
-- The CI workflow must run browser and mutation gates when any changed path is runtime-related or unknown, when no reliable changed-file range is available, or when classification fails.
-- The CI workflow may skip browser and mutation setup and execution only when every changed file is in the classifier's explicit non-runtime allowlist.
+- The CI workflow must run the browser gate when any changed path is runtime-related or unknown, when no reliable changed-file range is available, or when classification fails.
+- The CI workflow may skip browser setup and execution only when every changed file is in the classifier's explicit non-runtime allowlist.
 - The CI workflow must read the pinned Node version from `package.json` instead of a separate version file.
 - The CI workflow must keep using npm for install and verification steps without depending on one exact npm patch release.
 - The npm release used by CI must stay inside the supported npm range declared in `package.json`.
@@ -165,8 +163,7 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - Mutation testing must exclude colocated tests, end-to-end tests, declarations, and `src/test-support.ts` from mutation.
 - Mutation testing must use the Vitest runner's per-test coverage analysis and related-test narrowing rather than an ad hoc minimization wrapper.
 - Mutation testing must set Stryker worker concurrency as a percentage of available parallelism instead of a fixed worker count.
-- The isolated GitHub mutation job must override local Stryker concurrency to 100% without changing the 50% local default.
-- GitHub Actions must run the full mutation gate instead of the incremental mutation gate.
+- Optional mutation diagnostics must retain the 50% local concurrency default.
 - Mutation reports and Stryker incremental data must be written under ignored `reports/`, and Stryker's temporary sandbox must stay under ignored `.stryker-tmp/`.
 - New workflow write targets must be documented when they are introduced.
 - Manually created Fallow caches must stay ignored under `.fallow/`.
@@ -247,7 +244,7 @@ The template needs a verification baseline that stays strict enough for end-to-e
 
 - Given: a change affects GitHub Actions, dependency installation, build or container setup, browser CI setup, or an explicit full PR or release readiness check
 - When: the contributor runs `npm run quality:gate` and `npm run ci:local`
-- Then: the baseline gates pass and the split workflow is replayed in Local CI, while GitHub supplies the clean full mutation signal for runtime-relevant changes
+- Then: the baseline gates pass and the split workflow is replayed in Local CI
 
 **Scenario: Contributor monitors the full quality gate**
 
@@ -272,13 +269,13 @@ The template needs a verification baseline that stays strict enough for end-to-e
 
 - Given: a push or pull request changes only documented non-runtime paths
 - When: GitHub Actions classifies the changed commit range
-- Then: the fast job still runs while browser and mutation dependency installation and gate execution are skipped
+- Then: the fast job still runs while browser dependency installation and gate execution are skipped
 
 **Scenario: Remote change classification is uncertain**
 
 - Given: a changed path is not explicitly classified as non-runtime or the commit range cannot be inspected
 - When: GitHub Actions classifies the change
-- Then: browser and mutation verification run instead of risking a false skip
+- Then: browser verification runs instead of risking a false skip
 
 **Scenario: Contributor checks test assertion strength**
 
@@ -286,17 +283,17 @@ The template needs a verification baseline that stays strict enough for end-to-e
 - When: the contributor runs `npm run mutation`
 - Then: Stryker mutates runtime source only and fails if the mutation score is below the configured break threshold
 
-**Scenario: Contributor requests deep local verification**
+**Scenario: Contributor requests incremental mutation feedback**
 
 - Given: Stryker has an existing incremental report under `reports/`
-- When: the contributor runs `npm run quality:gate:deep`
-- Then: the fast and browser gates pass before Stryker reuses valid prior mutant results and reruns affected mutants
+- When: the contributor runs `npm run mutation:incremental`
+- Then: Stryker reuses valid prior mutant results and reruns affected mutants
 
-**Scenario: GitHub verifies mutation strength**
+**Scenario: GitHub verifies a change**
 
 - Given: a push or pull request runs GitHub Actions
-- When: the `quality-mutation` job runs
-- Then: it runs the full `npm run mutation` command at 100% runner concurrency instead of the incremental mutation command
+- When: GitHub Actions runs the configured verification workflow
+- Then: it runs fast and applicable browser checks without scheduling mutation testing
 
 **Scenario: Contributor adds browser behavior to a Worker view**
 
