@@ -1,4 +1,6 @@
-> **Project:** `vibe-template` is a lightweight starter for AI-assisted experiments and small software projects. Keep setup reusable, easy to clone, and easy to prune.
+> **Project:** Thesis Revision Helper is a planned LaTeX writing assistant for students who have completed their research and need help presenting their ideas clearly. The inherited Worker is still a starter stub; the product is not implemented yet.
+>
+> **Product context:** Read [`specs/thesis-revision/spec.md`](./specs/thesis-revision/spec.md) for the current vertical slice, full first-release contract, and deferred work. Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) and [ADR-069](./docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md) for the planned local companion and Cloudflare backend boundaries. LaTeX source remains authoritative and only the student commits manuscript changes.
 >
 > **Platform Baseline:** Local development and local CI in this repo target macOS. Treat other platforms as out of scope unless the user explicitly asks to broaden support.
 >
@@ -32,7 +34,7 @@ Ask only when the action is not already authorized in the conversation. Existing
 **ALWAYS**
 
 - Consult `.asdlc/SKILL.md` before giving ASDLC-specific guidance.
-- Prefer small, reviewable changes that preserve the template nature of the repo.
+- Prefer small, reviewable changes that preserve the working baseline and keep the setup lightweight.
 - Document reusable conventions instead of one-off preferences.
 - Add or update a template update pack in `.template/updates/` when a reusable template maintenance change should be portable to downstream projects.
 - Treat every lasting architectural decision as explicit documentation work, not implied context.

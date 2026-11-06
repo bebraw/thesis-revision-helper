@@ -21,6 +21,7 @@ Skip a spec for small fixes, trivial copy changes, or narrow tactical edits.
 
 - Global rules belong in [`ARCHITECTURE.md`](../ARCHITECTURE.md).
 - Feature specs belong in `specs/{feature-domain}/spec.md`.
+- The planned Thesis Revision Helper behavior, current increment, and first-release direction belong in [`specs/thesis-revision/spec.md`](thesis-revision/spec.md).
 - Capability-kit contracts belong in `specs/capability-kits/spec.md`.
 - Deployment-readiness preflight contracts belong in `specs/deploy-preflight/spec.md`.
 - Agent-skill baseline contracts belong in `specs/agent-skills/spec.md`.

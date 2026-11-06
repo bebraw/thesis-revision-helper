@@ -1,8 +1,18 @@
 # Architecture
 
-This file stores cross-cutting rules that apply to the whole repo and to projects cloned from it.
+This file stores cross-cutting rules that apply to Thesis Revision Helper and its retained template tooling.
 
 Use this file for global constraints. Use feature specs under `specs/` for domain-specific behavior and contracts.
+
+## Product Architecture
+
+The following constraints describe the accepted product architecture; the existing Worker stub does not yet implement it. [ADR-069](docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md) records the decision and alternatives. The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behavior and current increment.
+
+- Use a single-user browser interface with a local companion service for access to the student's LaTeX project and a Cloudflare backend for model-related work. Keep their interfaces replaceable; framework, provider, parser, storage implementation, and backend authentication remain open.
+- UTF-8 LaTeX source files are authoritative. Student editing transactions change manuscript text; model analysis and proposals do not. Generated annotations, history, and revision drafts belong in a separate application-managed store, not in manuscript comments.
+- The local service owns project file access and keeps model credentials out of browser state, exports, and logs. The Cloudflare backend receives only source and context needed for the requested model work; it does not gain authority to mutate the manuscript.
+- Keep source editing and persistence independent of model availability. Guard source operations against stale or ambiguous targets and external changes, and preserve drafts when analysis or a commit fails.
+- Treat project content and model responses as untrusted. Enforce the loopback, origin, path, and output-validation boundaries in the feature contract before enabling product workflows.
 
 ## Global Rules
 

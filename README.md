@@ -1,8 +1,10 @@
-# vibe-template
+# Thesis Revision Helper
 
-`vibe-template` currently ships as a Cloudflare Worker application served with Wrangler, implemented in JavaScript/TypeScript, and centered on server-rendered HTML with a small JSON API stub.
+Thesis Revision Helper is a planned LaTeX writing assistant for students who have already done their research and developed their ideas, but need help presenting them clearly. It will combine a live outline of the manuscript's reasoning with a revision workspace where students can consult an AI proposal while composing their own version. The student's LaTeX files remain authoritative, and only the student commits manuscript changes.
 
-This is a template for my vibecoding projects and it captures what I consider my best practices so I don't have to repeat them for each experiment.
+The current implementation increment is an early vertical slice: open a small local project, edit a paragraph, see its purpose update automatically, request a proposal, compose and commit a student revision, and see the outline refresh. The [product spec](specs/thesis-revision/spec.md) defines its boundary and the broader first-release requirements; those capabilities are **not implemented yet**. The planned architecture uses a local companion for project access and a Cloudflare backend alongside it, as recorded in [ADR-069](docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md).
+
+The repository currently runs the inherited `vibe-template` Cloudflare Worker stub, served with Wrangler and centered on server-rendered HTML with a small JSON API. It does not yet open or edit LaTeX projects or provide AI assistance.
 
 The repo vendors ASDLC reference material in `.asdlc/` as local guidance instead of recreating it per project. Repo-specific truth lives in `ARCHITECTURE.md`, `specs/`, and `docs/adrs/`: generated code still needs to match those documents, and passing CI alone is not enough.
 
@@ -10,6 +12,9 @@ Local development in this repo targets macOS. Other platforms may need script an
 
 ## Documentation
 
+- Product behavior, current increment, and first-release direction: [`specs/thesis-revision/spec.md`](specs/thesis-revision/spec.md)
+- Cross-cutting constraints: [`ARCHITECTURE.md`](ARCHITECTURE.md)
+- Planned local companion and Cloudflare backend: [`ADR-069`](docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md)
 - Development setup and local CI: `docs/development.md`
 - Architecture decisions: `docs/adrs/README.md`
 - Feature and architecture specs: `specs/README.md`
@@ -58,7 +63,7 @@ The repository includes compact instructions under `.codex/skills/` that help ca
 
 Each linked `SKILL.md` is the source of truth for boundaries and workflow details. Project-wide routing rules live in [`AGENTS.md`](AGENTS.md).
 
-## Runtime
+## Current Starter Runtime
 
 - Run `nvm use` before `npm install` or any other development command so your shell picks up the repo-pinned Node.js version from `.nvmrc` and stays close to the expected npm baseline.
 - Install dependencies with `npm install`.
@@ -118,20 +123,20 @@ For cross-repo agent work, tell the agent:
 
 > Look at `vibe-template/.template/updates/AGENT_SYNC.md` for latest template updates.
 
-## Starter App
+## Current Starter App
 
 - `GET /` serves a minimal editorial Worker stub with a route index and a primary health-probe link.
 - `GET /styles.css` serves the generated Tailwind stylesheet.
 - `GET /api/health` serves a JSON health response for smoke tests and tooling.
 
-## Source Layout
+## Current Starter Source Layout
 
 - `src/worker.ts` is the Worker entry point and top-level router.
 - `src/api/` holds API response modules such as the health endpoint.
 - `src/views/` holds HTML rendering modules for the starter UI.
 - Tests live next to the code they exercise under `src/`.
 
-## Application Screenshot
+## Starter App Screenshot
 
 ![Starter app screenshot](docs/screenshots/home.png)
 

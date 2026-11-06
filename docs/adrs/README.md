@@ -27,7 +27,9 @@ ADRs are grouped by lifecycle status:
 
 ## Accepted ADRs
 
-No accepted-only ADRs are currently pending implementation.
+| ADR                                                                     | Status   | Summary                                                                                         |
+| ----------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| [ADR-069](./accepted/ADR-069-local-companion-and-cloudflare-backend.md) | Accepted | Use a local companion for student-owned source and a Cloudflare backend for model-related work. |
 
 ## Implemented ADRs
 
