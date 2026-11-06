@@ -1,0 +1,9 @@
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -17,4 +17,5 @@
+ ## Tooling Baseline
+ 
+ - Local development and local CI target macOS as the supported host platform baseline.
++- Use a connected Cloudflare MCP as the retrieval and account-operation layer for current Cloudflare product work. Keep only the `workers-best-practices` and `wrangler` skills in the template baseline; add product-specific Cloudflare skills when a project actually adopts those products.
+ - Node is pinned exactly through `package.json`, and npm is constrained to a compatible major there instead of an exact patch pin.

@@ -1,0 +1,329 @@
+# Feature: Quality Gate
+
+## Blueprint
+
+### Context
+
+The template needs a verification baseline that stays strict enough for end-to-end confidence while still returning useful failures quickly during normal development.
+
+### Architecture
+
+- **Capability source root:** `scripts/` with command and policy configuration at the repository root
+- **Composition root:** `package.json` scripts and `scripts/run-quality-gate.mjs`
+- **State authority:** committed tool configuration such as `.architecture-check.json`, `.fallowrc.json`, and test-runner configs; ignored reports and caches are disposable
+- **Public contracts:** the documented `npm run quality:*`, `npm run diagnostics:*`, test, and local-CI commands
+- **Dependency direction:** orchestration scripts may invoke pinned development tools; runtime `src/` code must not depend on quality tooling
+- **Fast gate:** `npm run quality:gate:fast`
+- **Formatting scope:** project-owned code and documentation, excluding duplicated or vendored skill material listed in `.prettierignore`
+- **Formatting cache:** content-based Prettier cache at ignored `.cache/prettier`
+- **Correctness lint:** `npm run lint`
+- **Affected guardrails:** `npm run quality:affected`
+- **Browser gate:** `npm run e2e`, covering both the root Playwright baseline and the synthetic standard-adopter Playwright flow
+- **Affected test gate:** `npm run test:affected`
+- **Source-shape gate:** `npm run quality:structure`
+- **Source-shape config:** `.architecture-check.json`
+- **Source-shape logic:** `scripts/check-source-shape.mjs`
+- **Architecture-feedback integration:** deterministic source-shape behavior is owned here; `specs/architecture-feedback/spec.md` owns its composition with the interpretive review skill
+- **Advisory codebase diagnostics:** `npm run diagnostics:codebase`
+- **Changed-code readability diagnostics:** `npm run diagnostics:readability`
+- **Whole-repo health diagnostics:** `npm run diagnostics:health`
+- **Interactive codebase map:** `npm run diagnostics:map`
+- **Fallow semantic policy:** best-effort type-aware analysis with exact-version packaged companion
+- **Full mutation gate:** `npm run mutation`
+- **Incremental mutation gate:** `npm run mutation:incremental`
+- **Full gate:** `npm run quality:gate`
+- **Deep local gate:** `npm run quality:gate:deep`
+- **Full gate progress:** named phase transitions plus a 30-second elapsed-time heartbeat while a phase is running
+- **Local workflow:** `npm run ci:local`
+- **Local workflow concurrency:** Local CI job auto-concurrency
+- **Local workflow failure mode:** pause failed Local CI runners for retry
+- **Retry command:** `npm run ci:local:retry -- --name <runner-name>`
+- **Remote workflow:** `.github/workflows/ci.yml`
+- **Remote expensive-gate classifier:** `scripts/classify-expensive-ci.mjs`
+- **Remote expensive-gate policy:** skip browser and mutation setup/execution only when every changed file is in a documented non-runtime area; run on unknown paths or unavailable ranges
+- **CI dependency install:** plain `npm ci`
+- **Action pinning:** every GitHub Actions `uses:` reference must use a full commit SHA
+- **Git hook path:** `.githooks/`
+- **Hook setup script:** `scripts/setup-git-hooks.mjs`
+- **Affected guardrail logic:** `scripts/run-affected-guardrails.mjs`
+- **Affected test logic:** `scripts/run-affected-tests.mjs`
+- **Affected file helper logic:** `scripts/affected-file-utils.mjs`
+- **Runtime pin source:** `package.json#engines.node`
+- **Package manager hint source:** `package.json#packageManager`
+- **Browser runtime image:** `mcr.microsoft.com/playwright:v1.62.1-noble`
+- **Browser tracing regression:** `src/browser-tracing.e2e.ts` collects real screenshot trace events from both the bundled headless shell and full Chromium without external network access or saved traces
+- **Current Vitest compatibility:** `4.1.11` with matching coverage providers; the Room State kit's Cloudflare testing plugin requires `^4.1.0`, so the dependency refresh does not adopt Vitest 5
+- **Coverage gate logic:** `scripts/run-coverage-gate.mjs`
+- **Worker client-code guard:** `scripts/assert-no-worker-client-scripts.mjs`
+- **Worker Node-import guard:** `scripts/assert-no-worker-node-imports.mjs`
+- **Codebase diagnostics config:** `.fallowrc.json`
+- **Mutation config:** `stryker.config.mjs`
+- **Local mutation concurrency:** 50% of available parallelism
+- **GitHub mutation concurrency:** 100% of available parallelism
+- **Readiness baseline:** `npm run quality:gate` for non-documentation changes
+- **Local workflow requirement:** `npm run ci:local` for changes to GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, and explicit full PR or release readiness checks
+- **Local workflow exception:** ordinary source, test, tooling, and documentation changes may skip `npm run ci:local` when they do not cross a workflow-sensitive boundary
+
+### Anti-Patterns
+
+- Do not collapse fast and browser verification back into one opaque step without a concrete reason.
+- Do not treat colocated tests or test-support files as runtime source code when deciding whether unit coverage is missing.
+- Do not weaken the deterministic baseline checks just to make iteration faster.
+- Do not spend the full formatting budget on duplicated or vendored skill documentation that the project does not author.
+- Do not replace Prettier formatting or TypeScript project checking with Oxlint.
+- Do not enable broad Oxlint style, restriction, pedantic, or type-aware rule sets without an explicit decision and compatibility review.
+- Do not treat advisory Fallow diagnostics as a replacement for formatting, type checking, runtime audit, unit coverage, browser tests, mutation testing, or Worker-specific guardrails.
+- Do not treat source-shape limits as decomposition targets or proof of architectural quality.
+- Do not treat targeted iteration checks as a replacement for `npm run quality:gate` on non-documentation changes.
+- Do not require Local CI for changes that do not cross a documented workflow-sensitive boundary unless full PR or release readiness is explicitly requested.
+- Do not add undocumented workflow write targets for generated output, local state, caches, archives, or tool artifacts.
+
+## Contract
+
+### Definition of Done
+
+- [ ] The fast gate covers formatting, Oxlint correctness checks, type checking, source-shape smoke alarms, Worker client-code guardrails, runtime audit, and unit coverage.
+- [ ] Repeated formatting checks reuse content-based results for unchanged files without weakening cold-run coverage.
+- [ ] The affected guardrail path scopes formatting, Oxlint, JavaScript syntax checks, Worker client-code checks, package audit, and unit tests to affected files when possible.
+- [ ] The affected test gate runs tests related to affected runtime files, runs affected unit test files directly, and falls back to full coverage for broad test environment changes or affected runtime files with no related tests.
+- [ ] The advisory codebase diagnostics report changed-code readability risk, whole-repo health, hotspots, duplication, exact-symbol evidence, public-signature type coupling, and cleanup evidence without becoming part of the hard quality gate.
+- [ ] The interactive codebase map writes a self-contained HTML report under ignored `.fallow/` state without opening a browser automatically.
+- [ ] The source-shape gate rejects extreme production file and flat-directory growth while allowing exact rationale-bearing exceptions.
+- [ ] The browser gate covers the root Playwright baseline and the synthetic standard-adopter Playwright flow.
+- [ ] The full mutation gate covers runtime `src/**/*.ts` files with Stryker, Vitest, and TypeScript checking.
+- [ ] The incremental mutation gate reuses prior Stryker results for explicit deep local runs while preserving a complete mutation report.
+- [ ] The full gate runs the fast and browser gates in order without unconditionally running mutation testing.
+- [ ] The deep local gate runs the fast, browser, and incremental mutation gates in order.
+- [ ] The full and deep local gates report phase starts, completions, failures, and periodic elapsed-time heartbeats.
+- [ ] The repo-managed `pre-push` hook runs affected-file guardrails before a push leaves the machine.
+- [ ] Local and remote CI use the same split verification model for non-documentation changes.
+- [ ] Remote browser and mutation jobs avoid dependency installation and gate execution for known non-runtime-only changes.
+- [ ] Local CI is required for workflow-sensitive changes and explicit full PR or release readiness, but not for ordinary changes outside those boundaries.
+- [ ] The spec is updated in the same change set.
+
+### Regression Guardrails
+
+- `npm run quality:gate:fast` must remain a useful faster signal than the full gate.
+- `npm run quality:structure` must scan configured production roots without adding a runtime dependency or counting tests, end-to-end tests, and declarations.
+- Source-shape limits must stay configurable in `.architecture-check.json`, and exact exceptions must include rationales.
+- Prettier must ignore `.github/skills/` and `.codex/skills/**/references/` while continuing to check project-owned skill entry points, specs, ADRs, and documentation.
+- `npm run format:check` must use Prettier's content cache under ignored `.cache/prettier`; CI must remain correct when that cache is absent.
+- `npm run lint` must use the pinned Oxlint dependency, enable only its default rules, and fail when warnings are reported.
+- `npm run quality:affected` must avoid full-repo work when affected files make a narrower check sufficient.
+- `npm run test:affected` must avoid full coverage work when affected runtime or unit test files can be checked through related or direct Vitest runs.
+- `npm run quality:gate` must continue to represent the local baseline verification path.
+- `npm run quality:gate:deep` must remain an explicit opt-in path for local mutation feedback rather than part of the baseline readiness requirement.
+- `npm run quality:gate` must preserve each child command's live output and emit a progress heartbeat at least every 30 seconds while that command is still running.
+- `npm run quality:gate:deep` must preserve each child command's live output and emit a progress heartbeat at least every 30 seconds while that command is still running.
+- `npm run diagnostics:codebase` must remain advisory and must not be required by the baseline readiness path.
+- Fallow diagnostics must use `--no-cache` in repo scripts so normal diagnostic runs do not create a persistent `.fallow/` cache.
+- `npm run mutation` must fail when the mutation score is below the configured break threshold.
+- `npm run mutation:incremental` must fail when the resulting mutation score is below the configured break threshold.
+- `npm install` must keep the repo-managed `pre-push` hook configured without requiring extra setup steps.
+- The CI workflow must cancel superseded runs for the same ref.
+- The CI workflow must run browser and mutation gates when any changed path is runtime-related or unknown, when no reliable changed-file range is available, or when classification fails.
+- The CI workflow may skip browser and mutation setup and execution only when every changed file is in the classifier's explicit non-runtime allowlist.
+- The CI workflow must read the pinned Node version from `package.json` instead of a separate version file.
+- The CI workflow must keep using npm for install and verification steps without depending on one exact npm patch release.
+- The npm release used by CI must stay inside the supported npm range declared in `package.json`.
+- CI jobs must install dependencies with plain `npm ci`.
+- Local CI must rely on its built-in warm-cache preparation and isolated per-job dependency views instead of repo-local install locking.
+- Local CI must explicitly prewarm through one stable npm install step before parallel jobs start.
+- The CI workflow must pin every GitHub Actions `uses:` action reference to a full commit SHA, with any tag information kept only as a comment.
+- The browser CI job must use a container image whose version exactly matches the pinned `@playwright/test` version instead of reinstalling Chromium at runtime.
+- The browser gate must collect screenshot trace events from both the default headless shell and the full Chromium executable used by Lighthouse; a browser disconnect, incomplete trace, or missing screenshot events must fail the gate.
+- Browser dependency refreshes must also pass full mobile and desktop Lighthouse audits with screenshot collection enabled in Linux ARM64 Local CI before their pins are distributed. [ADR-068](../../docs/adrs/implemented/ADR-068-verify-browser-screenshot-tracing.md) records the verification policy and current rollback.
+- The coverage gate must only require unit tests when runtime `src/` code exists.
+- The coverage gate must work in both the normal workspace and Local CI's warmed `node_modules` layout.
+- The Worker client-code guard must allow only empty same-origin `/assets/*.js` module tags independent of attribute order, and must fail on inline, malformed, classic, remote, or non-asset scripts, inline event-handler attributes, and `javascript:` URLs in Worker/view runtime files while preserving source locations.
+- The affected guardrail path must pass only affected Worker/view runtime files to the Worker client-code guard.
+- The Worker Node-import guard must fail on static, dynamic, or CommonJS imports of Node built-ins from production `src/` files while excluding tests, declarations, and test-support modules.
+- The affected guardrail path must pass only affected production source files to the Worker Node-import guard.
+- The affected guardrail path must pass only affected JavaScript and TypeScript files to Oxlint.
+- The affected guardrail path must run JavaScript syntax checks only for affected JavaScript files.
+- The affected guardrail path must run package audit only when package metadata or lockfiles change.
+- The affected guardrail path must run the source-shape check when production source, the checker, or its configuration changes.
+- The affected guardrail path must skip unit tests when no runtime or unit test files are affected.
+- The affected test path must run full unit coverage when package metadata, TypeScript config, Vitest config, coverage-gate logic, or affected-test logic changes.
+- The affected test path must run full unit coverage when affected-file helper logic changes.
+- The affected test path must run full unit coverage when affected runtime files have no related tests and no affected unit test files were supplied.
+- The affected guardrail path may fall back to project-level type checking or coverage when a safe per-file check is not available.
+- The repo's local CI scripts should use the repo-pinned `local-ci` binary directly instead of carrying repo-specific runtime patching or install locking.
+- The canonical local CI script should rely on Local CI's managed warm cache and per-job dependency isolation instead of forcing `--jobs 1` to avoid dependency races on macOS-hosted Docker.
+- The explicit Local CI prewarm selector and its workflow install-step id must stay aligned.
+- The canonical local CI script should use pause-on-failure so agents can fix and retry a failed runner without restarting the whole workflow.
+- The canonical local CI script should combine quiet rendering with Local CI's structured JSON event stream so agents receive run, job, step, pause, diagnostic, and completion progress without parsing animated terminal output.
+- Agent command wrappers should use an unbuffered passthrough mode for local CI so structured lifecycle events reach the caller while the workflow is still running.
+- The local verification workflow should document macOS as the supported host baseline instead of implying cross-platform support.
+- The Playwright server path must avoid macOS file-watcher exhaustion in local runs without changing the normal `npm run dev` workflow.
+- The local CI documentation must cover the no-`origin` case through `.env.local-ci` and `GITHUB_REPO` instead of treating that warning as normal noise.
+- The local CI Docker daemon override must use Local CI's `LOCAL_CI_DOCKER_HOST` variable instead of the general Docker CLI `DOCKER_HOST` variable.
+- Local Playwright browser installation should go through a pinned repo script instead of ad hoc `npx playwright install ...` usage.
+- Targeted checks may be documented for iteration, but `npm run quality:gate` remains the readiness baseline for non-documentation changes.
+- Local CI must be required for changes to GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, and explicit full PR or release readiness checks.
+- Ordinary source, test, tooling, and documentation changes may skip `npm run ci:local` when they do not cross a workflow-sensitive boundary.
+- Mutation testing must exclude colocated tests, end-to-end tests, declarations, and `src/test-support.ts` from mutation.
+- Mutation testing must use the Vitest runner's per-test coverage analysis and related-test narrowing rather than an ad hoc minimization wrapper.
+- Mutation testing must set Stryker worker concurrency as a percentage of available parallelism instead of a fixed worker count.
+- The isolated GitHub mutation job must override local Stryker concurrency to 100% without changing the 50% local default.
+- GitHub Actions must run the full mutation gate instead of the incremental mutation gate.
+- Mutation reports and Stryker incremental data must be written under ignored `reports/`, and Stryker's temporary sandbox must stay under ignored `.stryker-tmp/`.
+- New workflow write targets must be documented when they are introduced.
+- Manually created Fallow caches must stay ignored under `.fallow/`.
+- The generated Fallow codebase map must stay ignored at `.fallow/codebase-map.html`.
+- Fallow's type-aware pass must remain best-effort and advisory; TypeScript compiler diagnostics stay owned by `npm run typecheck`, and local lint findings stay owned by Oxlint.
+- Fallow must ignore tool-only dependency aliases that repo scripts execute directly or reference only through tooling types instead of reporting them as unused runtime imports.
+
+### Verification
+
+- **Automated checks:** `npm run quality:gate`; add `npm run ci:local` for workflow-sensitive changes and explicit full PR or release readiness
+- **Source-shape tests:** `node --test scripts/check-source-shape.test.mjs`
+- **Local setup check:** `git config --get core.hooksPath` should resolve to `.githooks`
+- **Workflow shape:** `.github/workflows/ci.yml` should show separate fast and browser jobs, with repository-shape validation in the fast job
+
+### Scenarios
+
+**Scenario: Contributor wants an affected local signal**
+
+- Given: a change is still being iterated locally
+- When: the contributor runs `npm run quality:affected`
+- Then: guardrails run against affected files where possible and skip unrelated work
+
+**Scenario: Contributor wants an affected unit test signal**
+
+- Given: runtime or unit test files are affected
+- When: the contributor runs `npm run test:affected`
+- Then: Vitest checks related runtime tests or affected unit test files without running unrelated unit tests when that is safe
+
+**Scenario: Contributor wants codebase readability diagnostics**
+
+- Given: a change is ready for review or a refactor target is unclear
+- When: the contributor runs `npm run diagnostics:codebase`
+- Then: Fallow reports changed-code readability risk, health scoring, hotspots, duplication, and cleanup evidence without replacing the baseline gate
+
+**Scenario: Production source crosses a structural smoke alarm**
+
+- Given: a production source file or direct source directory exceeds its configured limit without an exception
+- When: the fast or affected guardrail path runs
+- Then: `quality:structure` fails with the measured path and directs the contributor to Architecture Review
+
+**Scenario: Contributor wants a codebase map**
+
+- Given: architecture or cleanup work needs a visual repository overview
+- When: the contributor runs `npm run diagnostics:map`
+- Then: Fallow writes a self-contained type-aware map to `.fallow/codebase-map.html` without opening a browser
+
+**Scenario: Contributor wants a fast baseline signal**
+
+- Given: a change that does not need immediate browser verification
+- When: the contributor runs `npm run quality:gate:fast`
+- Then: formatting, correctness linting, typing, audit, and unit coverage run without waiting for Playwright
+
+**Scenario: Fast formatting skips vendored skill material**
+
+- Given: the repository contains duplicated GitHub skill content and vendored Codex skill references
+- When: the contributor runs `npm run format:check`
+- Then: Prettier checks project-owned code and documentation without traversing those excluded skill trees
+
+**Scenario: Contributor repeats a formatting check**
+
+- Given: a successful formatting check has populated `.cache/prettier`
+- When: the contributor runs `npm run format:check` again without changing a checked file
+- Then: Prettier reuses the content-based result while preserving the same formatting contract
+
+**Scenario: Contributor introduces a JavaScript or TypeScript correctness issue**
+
+- Given: a JavaScript or TypeScript file violates an Oxlint default rule
+- When: the contributor runs `npm run lint`, the fast gate, or the applicable affected-file guardrail
+- Then: the command fails without replacing Prettier formatting or TypeScript project checking
+
+**Scenario: Routine source change reaches readiness**
+
+- Given: a source, test, or tooling change does not cross a workflow-sensitive boundary
+- When: the contributor runs `npm run quality:gate`
+- Then: the fast and browser verification paths pass locally without requiring a containerized replay of the workflow
+
+**Scenario: Workflow-sensitive change reaches readiness**
+
+- Given: a change affects GitHub Actions, dependency installation, build or container setup, browser CI setup, or an explicit full PR or release readiness check
+- When: the contributor runs `npm run quality:gate` and `npm run ci:local`
+- Then: the baseline gates pass and the split workflow is replayed in Local CI, while GitHub supplies the clean full mutation signal for runtime-relevant changes
+
+**Scenario: Contributor monitors the full quality gate**
+
+- Given: a full quality-gate phase takes long enough to appear idle
+- When: the contributor runs `npm run quality:gate`
+- Then: the gate names the active phase, preserves its live output, and reports elapsed time every 30 seconds until the phase completes or fails
+
+**Scenario: Agent monitors local CI progress**
+
+- Given: an agent runs the canonical local CI command
+- When: Local CI advances through the workflow or pauses on a failure through any required command wrapper
+- Then: the command emits structured lifecycle events, including step transitions and the paused runner's retry command, without requiring animated terminal output
+
+**Scenario: Documentation-only change**
+
+- Given: a change only edits documentation
+- And: it does not alter executable config, generated artifacts, package metadata, source code, or tests
+- When: the contributor runs the smallest relevant local checks
+- Then: they may skip `npm run ci:local`
+
+**Scenario: Remote non-runtime-only change**
+
+- Given: a push or pull request changes only documented non-runtime paths
+- When: GitHub Actions classifies the changed commit range
+- Then: the fast job still runs while browser and mutation dependency installation and gate execution are skipped
+
+**Scenario: Remote change classification is uncertain**
+
+- Given: a changed path is not explicitly classified as non-runtime or the commit range cannot be inspected
+- When: GitHub Actions classifies the change
+- Then: browser and mutation verification run instead of risking a false skip
+
+**Scenario: Contributor checks test assertion strength**
+
+- Given: runtime `src/**/*.ts` code has colocated unit tests
+- When: the contributor runs `npm run mutation`
+- Then: Stryker mutates runtime source only and fails if the mutation score is below the configured break threshold
+
+**Scenario: Contributor requests deep local verification**
+
+- Given: Stryker has an existing incremental report under `reports/`
+- When: the contributor runs `npm run quality:gate:deep`
+- Then: the fast and browser gates pass before Stryker reuses valid prior mutant results and reruns affected mutants
+
+**Scenario: GitHub verifies mutation strength**
+
+- Given: a push or pull request runs GitHub Actions
+- When: the `quality-mutation` job runs
+- Then: it runs the full `npm run mutation` command at 100% runner concurrency instead of the incremental mutation command
+
+**Scenario: Contributor adds browser behavior to a Worker view**
+
+- Given: a Worker-rendered view needs browser-side behavior
+- When: the contributor adds inline executable browser code to `src/worker.ts` or `src/views/**/*.ts`
+- Then: the fast quality gate fails and points them toward typed TypeScript modules instead
+
+**Scenario: Production code imports a Node built-in**
+
+- Given: the starter retains its Web-standards-only Worker runtime contract
+- When: production source statically or dynamically imports a Node built-in
+- Then: the fast and affected quality paths fail before Wrangler can bundle the unsupported import
+
+**Scenario: Contributor pushes with a broken fast gate**
+
+- Given: the repo was bootstrapped with `npm install`
+- When: the contributor runs `git push` while the fast gate is red
+- Then: the `pre-push` hook runs affected-file guardrails and the push is blocked before remote CI starts
+
+**Scenario: New push supersedes an old CI run**
+
+- Given: a newer push exists on the same ref
+- When: GitHub Actions schedules the new workflow run
+- Then: the older in-progress run is canceled instead of continuing to consume time
+
+**Scenario: Contributor audits remote action references**
+
+- Given: the remote CI workflow uses reusable GitHub Actions
+- When: the contributor reviews `.github/workflows/ci.yml`
+- Then: every `uses:` action reference points at a full commit SHA instead of a mutable tag

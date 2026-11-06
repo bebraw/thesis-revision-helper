@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture Review"
+  short_description: "Review capability ownership and structural pressure"
+  default_prompt: "Use $architecture-review to check whether this capability should expand or consolidate first."

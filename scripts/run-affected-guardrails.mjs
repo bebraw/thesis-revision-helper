@@ -1,0 +1,186 @@
+import process from "node:process";
+import { getAffectedFiles, getRepoRoot, normalizeFiles, run } from "./affected-file-utils.mjs";
+
+const repoRoot = getRepoRoot();
+const affectedFiles = normalizeFiles(getAffectedFiles(repoRoot));
+
+if (affectedFiles.length === 0) {
+  console.log("Affected guardrails skipped: no affected files found.");
+  process.exit(0);
+}
+
+console.log(`Affected guardrails checking ${affectedFiles.length} file(s).`);
+
+runPrettier(affectedFiles);
+runOxlint(affectedFiles);
+runJavaScriptSyntaxCheckWhenNeeded(affectedFiles);
+runTypecheckWhenNeeded(affectedFiles);
+runSourceShapeCheckWhenNeeded(affectedFiles);
+runWorkerClientGuard(affectedFiles);
+runWorkerNodeImportGuard(affectedFiles);
+runAuditWhenNeeded(affectedFiles);
+runTestsWhenNeeded(affectedFiles);
+
+function runPrettier(files) {
+  console.log("Checking formatting for affected files...");
+  run(repoRoot, "npx", ["prettier", "--check", "--ignore-unknown", ...files]);
+}
+
+function runOxlint(files) {
+  const lintFiles = files.filter(affectsOxlint);
+
+  if (lintFiles.length === 0) {
+    console.log("Oxlint skipped: no affected JavaScript or TypeScript files.");
+    return;
+  }
+
+  console.log("Running Oxlint for affected files...");
+  run(repoRoot, "npx", ["oxlint", "--max-warnings", "0", ...lintFiles]);
+}
+
+function runTypecheckWhenNeeded(files) {
+  if (!files.some(affectsTypecheck)) {
+    console.log("Typecheck skipped: no affected TypeScript or typed tooling files.");
+    return;
+  }
+
+  console.log("Running project typecheck for affected typed files...");
+  run(repoRoot, "npm", ["run", "typecheck"]);
+}
+
+function runJavaScriptSyntaxCheckWhenNeeded(files) {
+  const syntaxCheckFiles = files.filter(affectsJavaScriptSyntax);
+
+  if (syntaxCheckFiles.length === 0) {
+    console.log("JavaScript syntax check skipped: no affected JavaScript files.");
+    return;
+  }
+
+  console.log("Running JavaScript syntax checks for affected files...");
+
+  for (const file of syntaxCheckFiles) {
+    run(repoRoot, "node", ["--check", file]);
+  }
+}
+
+function runSourceShapeCheckWhenNeeded(files) {
+  if (!files.some(isSourceShapeFile)) {
+    console.log("Source shape check skipped: no production source files changed.");
+    return;
+  }
+
+  console.log("Checking source shape after production source changes...");
+  run(repoRoot, "npm", ["run", "quality:structure"]);
+}
+
+function runWorkerClientGuard(files) {
+  const guardFiles = files.filter(isWorkerClientGuardFile);
+
+  if (guardFiles.length === 0) {
+    console.log("Worker client guard skipped: no affected Worker view files.");
+    return;
+  }
+
+  console.log("Running Worker client guard for affected Worker view files...");
+  run(repoRoot, "npm", ["run", "worker:client-guard", "--", ...guardFiles]);
+}
+
+function runWorkerNodeImportGuard(files) {
+  const guardFiles = files.filter(isWorkerRuntimeFile);
+
+  if (guardFiles.length === 0) {
+    console.log("Worker Node import guard skipped: no affected production source files.");
+    return;
+  }
+
+  console.log("Running Worker Node import guard for affected production source files...");
+  run(repoRoot, "npm", ["run", "worker:node-import-guard", "--", ...guardFiles]);
+}
+
+function runAuditWhenNeeded(files) {
+  if (!files.some((file) => file === "package.json" || file === "package-lock.json")) {
+    console.log("Security audit skipped: package files unchanged.");
+    return;
+  }
+
+  console.log("Running security audit because package files changed...");
+  run(repoRoot, "npm", ["run", "security:audit"]);
+}
+
+function runTestsWhenNeeded(files) {
+  if (!files.some(affectsUnitCoverage)) {
+    console.log("Affected tests skipped: no affected runtime, unit test, or test environment files.");
+    return;
+  }
+
+  console.log("Running affected tests because affected files include runtime, unit test, or test environment code...");
+  run(repoRoot, "npm", ["run", "test:affected", "--", ...files]);
+}
+
+function affectsTypecheck(file) {
+  return (
+    /\.(?:ts|tsx|mts|cts)$/.test(file) || ["tsconfig.json", "vitest.config.ts", "playwright.config.ts", "wrangler.jsonc"].includes(file)
+  );
+}
+
+function affectsJavaScriptSyntax(file) {
+  return /\.(?:js|jsx|mjs|cjs)$/.test(file);
+}
+
+function affectsOxlint(file) {
+  return /\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(file);
+}
+
+function isWorkerClientGuardFile(file) {
+  return (
+    (file === "src/worker.ts" || file.startsWith("src/views/")) &&
+    file.endsWith(".ts") &&
+    !file.endsWith(".test.ts") &&
+    !file.endsWith(".e2e.ts") &&
+    !file.endsWith(".d.ts")
+  );
+}
+
+function isSourceShapeFile(file) {
+  return (
+    file === ".architecture-check.json" ||
+    file === "scripts/check-source-shape.mjs" ||
+    (file.startsWith("src/") &&
+      /\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(file) &&
+      !/\.(?:test|e2e)\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(file) &&
+      !file.endsWith(".d.ts"))
+  );
+}
+
+function isWorkerRuntimeFile(file) {
+  return (
+    file.startsWith("src/") &&
+    /\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(file) &&
+    !/\.(?:test|e2e)\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(file) &&
+    !/\.d\.(?:ts|mts|cts)$/.test(file) &&
+    file !== "src/test-support.ts" &&
+    !file.startsWith("src/test-support/")
+  );
+}
+
+function affectsUnitCoverage(file) {
+  return (
+    affectsTestEnvironment(file) ||
+    (file.startsWith("src/") &&
+      /\.(?:test\.)?(?:ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(file) &&
+      !file.endsWith(".d.ts") &&
+      !file.endsWith(".e2e.ts"))
+  );
+}
+
+function affectsTestEnvironment(file) {
+  return [
+    "package.json",
+    "package-lock.json",
+    "tsconfig.json",
+    "vitest.config.ts",
+    "scripts/run-coverage-gate.mjs",
+    "scripts/run-affected-tests.mjs",
+    "scripts/affected-file-utils.mjs",
+  ].includes(file);
+}

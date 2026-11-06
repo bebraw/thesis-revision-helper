@@ -1,0 +1,34 @@
+diff --git a/.fallowrc.json b/.fallowrc.json
+--- a/.fallowrc.json
++++ b/.fallowrc.json
+@@ -1,5 +1,5 @@
+ {
+   "$schema": "./node_modules/fallow/schema.json",
+   "entry": ["src/**/*.e2e.ts"],
+-  "ignoreDependencies": ["@stryker-mutator/api"]
++  "ignoreDependencies": ["@stryker-mutator/api", "typescript-7"]
+ }
+diff --git a/package.json b/package.json
+--- a/package.json
++++ b/package.json
+@@ -19,8 +19,9 @@
+     "deploy": "wrangler deploy",
+     "dev": "HOME=$PWD wrangler dev --local --ip 127.0.0.1 --port 8787 --inspector-ip 127.0.0.1 --inspector-port 9229 --log-level error --show-interactive-dev-session=false",
+     "diagnostics:codebase": "npm run diagnostics:readability && npm run diagnostics:health",
+-    "diagnostics:health": "fallow health --score --hotspots --targets --quiet --no-cache",
+-    "diagnostics:readability": "fallow audit --max-crap 100 --quiet --no-cache",
++    "diagnostics:health": "fallow health --score --hotspots --targets --type-aware --type-aware-require best-effort --type-coupling --quiet --no-cache",
++    "diagnostics:map": "fallow viz --out .fallow/codebase-map.html --no-open --type-aware --type-aware-require best-effort --quiet --no-cache",
++    "diagnostics:readability": "fallow audit --max-crap 100 --type-aware --type-aware-require best-effort --quiet --no-cache",
+     "e2e": "playwright test --pass-with-no-tests",
+     "e2e:server": "CHOKIDAR_USEPOLLING=1 CHOKIDAR_INTERVAL=200 HOME=$PWD wrangler dev --local --ip 127.0.0.1 --port 8788 --inspector-ip 127.0.0.1 --inspector-port 9230 --log-level error --show-interactive-dev-session=false",
+     "format": "prettier --write .",
+@@ -53,7 +54,7 @@
+     "@types/node": "26.1.1",
+     "@vitest/coverage-v8": "4.1.10",
+     "chrome-launcher": "1.2.1",
+-    "fallow": "3.3.0",
++    "fallow": "3.10.0",
+     "lighthouse": "13.4.0",
+     "oxlint": "1.74.0",
+     "prettier": "3.9.5",

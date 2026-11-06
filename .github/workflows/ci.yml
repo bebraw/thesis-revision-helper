@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality-fast:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Restore npm cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Validate repository shape
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f README.md
+          test -f AGENTS.md
+          test -f .asdlc/SKILL.md
+          test -f package.json
+          test -f package-lock.json
+          test -f .dev.vars.example
+          git diff --check
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          package-manager-cache: false
+
+      - name: Install dependencies
+        id: install
+        shell: bash
+        run: npm ci
+
+      - name: Run fast quality gate
+        shell: bash
+        run: npm run quality:gate:fast
+
+      - name: Verify executable capability kits
+        shell: bash
+        run: npm run capabilities:verify
+
+  quality-browser:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+      options: --ipc=host
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Classify expensive gate inputs
+        id: expensive
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node ./scripts/classify-expensive-ci.mjs "$BASE_SHA" "$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Restore npm cache
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Set up Node.js
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          package-manager-cache: false
+
+      - name: Install dependencies
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        shell: bash
+        run: npm ci
+
+      - name: Run browser quality gate
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        shell: bash
+        run: npm run e2e
+
+  quality-mutation:
+    if: ${{ github.server_url == 'https://github.com' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Classify expensive gate inputs
+        id: expensive
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node ./scripts/classify-expensive-ci.mjs "$BASE_SHA" "$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Restore npm cache
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
+
+      - name: Set up Node.js
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          package-manager-cache: false
+
+      - name: Install dependencies
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        shell: bash
+        run: npm ci
+
+      - name: Run mutation quality gate
+        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+        shell: bash
+        run: npm run mutation -- --concurrency 100%

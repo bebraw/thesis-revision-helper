@@ -1,0 +1,85 @@
+diff --git a/AGENTS.md b/AGENTS.md
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -37,8 +37,8 @@
+ - Add or update an ADR in `docs/adrs/` in the same change set whenever a decision introduces or changes a lasting architectural constraint, selects between credible alternatives, or supersedes an earlier architecture decision. Keep drafts in `docs/adrs/proposed/`, approved-but-not-yet-implemented decisions in `docs/adrs/accepted/`, and implemented decisions in `docs/adrs/implemented/`.
+ - Record global architecture rules in `ARCHITECTURE.md` and feature-level contracts in `specs/{feature-domain}/spec.md`.
+ - Treat completed feature work as spec work: create a new `specs/{feature-domain}/spec.md` or update the relevant existing spec in the same change set whenever feature behavior, contracts, workflows, or quality guardrails change.
+-- Prefer the local Agent CI workflow before relying on remote CI.
+-- Treat a non-documentation change as ready only after the quality gate and local CI both pass.
++- Prefer the local Agent CI workflow before relying on remote CI when workflow-sensitive validation is required.
++- Treat a non-documentation change as ready after the quality gate passes. Also require local CI when the change touches GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, or when the user asks for full PR or release readiness.
+ - Treat `package.json` as the source of truth for pinned Node and npm versions, with `.nvmrc` kept in sync as a convenience mirror for `nvm use`.
+ - Read the relevant library or tool documentation carefully before applying, upgrading, or reconfiguring it in the project, especially when behavior is version-sensitive.
+ - Use `npm run quality:gate:fast` for quick local iteration, `npm run quality:gate` for the full baseline gate, and `npm run ci:local` for the local workflow check.
+@@ -47,8 +47,9 @@
+ - Treat `npm run typecheck` as part of the baseline gate whenever TypeScript files or typed tooling config are involved.
+ - Treat high automated test coverage as part of done work for `src/` code. The baseline gate should fail when `src/` code exists without matching unit coverage.
+ - Keep new workflow write targets explicit and documented instead of adding ad hoc file writes.
+-- Use targeted checks while iterating, then run `npm run quality:gate` and `npm run ci:local` before treating a non-documentation change as ready.
+-- For documentation-only changes that do not alter executable config, generated artifacts, package metadata, source code, or tests, skip `npm run ci:local` and use the smallest relevant local checks such as `npm run format:check`.
++- Use targeted checks while iterating, then run `npm run quality:gate` before treating a non-documentation change as ready.
++- Run `npm run ci:local` for workflow-sensitive changes and explicit full PR or release readiness checks. Ordinary source, test, and tooling changes that do not cross those boundaries do not require local Agent CI.
++- For documentation-only changes that do not alter executable instructions or workflow contracts, use the smallest relevant local checks such as `npm run format:check`.
+ 
+ ## TypeScript
+ 
+@@ -60,8 +61,9 @@
+ ## Agent CI
+ 
+ - Use the project-local [`agent-ci`](./.codex/skills/agent-ci/SKILL.md) skill when testing, running checks, or validating code changes before pushing.
+-- Treat the skill as the default local CI loop for this repo before relying on remote GitHub Actions.
+-- Skip Agent CI for documentation-only changes that do not alter executable behavior or workflow configuration.
++- Use Agent CI to validate workflow-sensitive changes before relying on remote GitHub Actions.
++- Require Agent CI when a change touches GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, or when the user asks for full PR or release readiness.
++- Skip Agent CI for ordinary source, test, tooling, and documentation changes that do not cross those workflow-sensitive boundaries.
+ 
+ ## Frontend Design
+ 
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -34,12 +34,13 @@
+ - Keep Stryker at 50% concurrency for responsive local work, while the isolated GitHub mutation job may use 100% of its runner's available parallelism.
+ - The fast quality gate should fail when Worker/view runtime files contain inline `<script>` tags, inline event-handler attributes, or `javascript:` URLs.
+ - Unit coverage for `src/` code should stay high enough that the coverage gate remains green.
+-- Local CI should validate the same baseline checks before non-documentation changes are proposed or merged.
++- Local CI should validate the same baseline checks when changes cross workflow-sensitive boundaries or when full PR or release readiness is requested.
+ - The canonical local CI command should emit Agent CI's structured lifecycle event stream so agents can track run, job, step, pause, and completion state without relying on animated terminal output. Agent command wrappers must pass that stream through live instead of buffering it until process exit.
+-- Targeted commands are useful while iterating, but `npm run quality:gate` and `npm run ci:local` remain the readiness baseline before proposing or landing non-documentation changes.
++- Targeted commands are useful while iterating, but `npm run quality:gate` remains the readiness baseline before proposing or landing non-documentation changes.
++- Require `npm run ci:local` when a change touches GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, or when full PR or release readiness is requested. Ordinary source, test, and tooling changes do not require it when they stay outside those boundaries.
+ - Use `npm run quality:gate:deep` when local assertion-strength feedback is worth the additional mutation-testing cost.
+ - `npm run diagnostics:codebase` is useful during review and refactoring, but passing or failing it is not a readiness baseline by itself.
+-- Documentation-only changes may skip `npm run ci:local` when they do not alter executable config, generated artifacts, package metadata, source code, or tests.
++- Documentation-only changes should use the smallest relevant checks unless they alter executable instructions or workflow contracts.
+ 
+ ## Capability Kits
+ 
+diff --git a/specs/quality-gate/spec.md b/specs/quality-gate/spec.md
+--- a/specs/quality-gate/spec.md
++++ b/specs/quality-gate/spec.md
+@@ -48,8 +48,9 @@
+ - **Mutation config:** `stryker.config.mjs`
+ - **Local mutation concurrency:** 50% of available parallelism
+ - **GitHub mutation concurrency:** 100% of available parallelism
+-- **Readiness baseline:** `npm run quality:gate` and `npm run ci:local` for non-documentation changes
+-- **Documentation-only exception:** documentation-only changes may skip `npm run ci:local` when they do not alter executable config, generated artifacts, package metadata, source code, or tests
++- **Readiness baseline:** `npm run quality:gate` for non-documentation changes
++- **Local workflow requirement:** `npm run ci:local` for changes to GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, and explicit full PR or release readiness checks
++- **Local workflow exception:** ordinary source, test, tooling, and documentation changes may skip `npm run ci:local` when they do not cross a workflow-sensitive boundary
+ 
+ ### Anti-Patterns
+ 
+@@ -136,8 +137,9 @@
+ - The local CI documentation must cover the no-`origin` case through `.env.agent-ci` and `GITHUB_REPO` instead of treating that warning as normal noise.
+ - The local CI Docker daemon override must use Agent CI's `AGENT_CI_DOCKER_HOST` variable instead of the general Docker CLI `DOCKER_HOST` variable.
+ - Local Playwright browser installation should go through a pinned repo script instead of ad hoc `npx playwright install ...` usage.
+-- Targeted checks may be documented for iteration, but `npm run quality:gate` and `npm run ci:local` remain the readiness baseline for non-documentation changes.
+-- Documentation-only changes may skip `npm run ci:local` when they do not alter executable config, generated artifacts, package metadata, source code, or tests.
++- Targeted checks may be documented for iteration, but `npm run quality:gate` remains the readiness baseline for non-documentation changes.
++- Local Agent CI must be required for changes to GitHub Actions workflows, package metadata or dependency installation, build or container setup, browser CI setup, and explicit full PR or release readiness checks.
++- Ordinary source, test, tooling, and documentation changes may skip `npm run ci:local` when they do not cross a workflow-sensitive boundary.
+ - Mutation testing must exclude colocated tests, end-to-end tests, declarations, and `src/test-support.ts` from mutation.
+ - Mutation testing must use the Vitest runner's per-test coverage analysis and related-test narrowing rather than an ad hoc minimization wrapper.
+ - Mutation testing must set Stryker worker concurrency as a percentage of available parallelism instead of a fixed worker count.

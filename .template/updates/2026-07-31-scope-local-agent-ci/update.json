@@ -1,0 +1,10 @@
+{
+  "id": "2026-07-31-scope-local-agent-ci",
+  "title": "Scope local Agent CI to workflow-sensitive changes",
+  "status": "implemented",
+  "risk": "low",
+  "supersedes": [],
+  "adrs": ["docs/adrs/implemented/ADR-046-scope-local-agent-ci-to-workflow-sensitive-changes.md"],
+  "touches": ["AGENTS.md", "ARCHITECTURE.md", "README.md", "docs/", "specs/"],
+  "checks": ["npm run format:check"]
+}

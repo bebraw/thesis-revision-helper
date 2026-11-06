@@ -1,0 +1,503 @@
+diff --git a/.codex/skills/modern-web-guidance/LICENSE b/.codex/skills/modern-web-guidance/LICENSE
+new file mode 100644
+index 0000000..d645695
+--- /dev/null
++++ b/.codex/skills/modern-web-guidance/LICENSE
+@@ -0,0 +1,202 @@
++
++                                 Apache License
++                           Version 2.0, January 2004
++                        http://www.apache.org/licenses/
++
++   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
++
++   1. Definitions.
++
++      "License" shall mean the terms and conditions for use, reproduction,
++      and distribution as defined by Sections 1 through 9 of this document.
++
++      "Licensor" shall mean the copyright owner or entity authorized by
++      the copyright owner that is granting the License.
++
++      "Legal Entity" shall mean the union of the acting entity and all
++      other entities that control, are controlled by, or are under common
++      control with that entity. For the purposes of this definition,
++      "control" means (i) the power, direct or indirect, to cause the
++      direction or management of such entity, whether by contract or
++      otherwise, or (ii) ownership of fifty percent (50%) or more of the
++      outstanding shares, or (iii) beneficial ownership of such entity.
++
++      "You" (or "Your") shall mean an individual or Legal Entity
++      exercising permissions granted by this License.
++
++      "Source" form shall mean the preferred form for making modifications,
++      including but not limited to software source code, documentation
++      source, and configuration files.
++
++      "Object" form shall mean any form resulting from mechanical
++      transformation or translation of a Source form, including but
++      not limited to compiled object code, generated documentation,
++      and conversions to other media types.
++
++      "Work" shall mean the work of authorship, whether in Source or
++      Object form, made available under the License, as indicated by a
++      copyright notice that is included in or attached to the work
++      (an example is provided in the Appendix below).
++
++      "Derivative Works" shall mean any work, whether in Source or Object
++      form, that is based on (or derived from) the Work and for which the
++      editorial revisions, annotations, elaborations, or other modifications
++      represent, as a whole, an original work of authorship. For the purposes
++      of this License, Derivative Works shall not include works that remain
++      separable from, or merely link (or bind by name) to the interfaces of,
++      the Work and Derivative Works thereof.
++
++      "Contribution" shall mean any work of authorship, including
++      the original version of the Work and any modifications or additions
++      to that Work or Derivative Works thereof, that is intentionally
++      submitted to Licensor for inclusion in the Work by the copyright owner
++      or by an individual or Legal Entity authorized to submit on behalf of
++      the copyright owner. For the purposes of this definition, "submitted"
++      means any form of electronic, verbal, or written communication sent
++      to the Licensor or its representatives, including but not limited to
++      communication on electronic mailing lists, source code control systems,
++      and issue tracking systems that are managed by, or on behalf of, the
++      Licensor for the purpose of discussing and improving the Work, but
++      excluding communication that is conspicuously marked or otherwise
++      designated in writing by the copyright owner as "Not a Contribution."
++
++      "Contributor" shall mean Licensor and any individual or Legal Entity
++      on behalf of whom a Contribution has been received by Licensor and
++      subsequently incorporated within the Work.
++
++   2. Grant of Copyright License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      copyright license to reproduce, prepare Derivative Works of,
++      publicly display, publicly perform, sublicense, and distribute the
++      Work and such Derivative Works in Source or Object form.
++
++   3. Grant of Patent License. Subject to the terms and conditions of
++      this License, each Contributor hereby grants to You a perpetual,
++      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
++      (except as stated in this section) patent license to make, have made,
++      use, offer to sell, sell, import, and otherwise transfer the Work,
++      where such license applies only to those patent claims licensable
++      by such Contributor that are necessarily infringed by their
++      Contribution(s) alone or by combination of their Contribution(s)
++      with the Work to which such Contribution(s) was submitted. If You
++      institute patent litigation against any entity (including a
++      cross-claim or counterclaim in a lawsuit) alleging that the Work
++      or a Contribution incorporated within the Work constitutes direct
++      or contributory patent infringement, then any patent licenses
++      granted to You under this License for that Work shall terminate
++      as of the date such litigation is filed.
++
++   4. Redistribution. You may reproduce and distribute copies of the
++      Work or Derivative Works thereof in any medium, with or without
++      modifications, and in Source or Object form, provided that You
++      meet the following conditions:
++
++      (a) You must give any other recipients of the Work or
++          Derivative Works a copy of this License; and
++
++      (b) You must cause any modified files to carry prominent notices
++          stating that You changed the files; and
++
++      (c) You must retain, in the Source form of any Derivative Works
++          that You distribute, all copyright, patent, trademark, and
++          attribution notices from the Source form of the Work,
++          excluding those notices that do not pertain to any part of
++          the Derivative Works; and
++
++      (d) If the Work includes a "NOTICE" text file as part of its
++          distribution, then any Derivative Works that You distribute must
++          include a readable copy of the attribution notices contained
++          within such NOTICE file, excluding those notices that do not
++          pertain to any part of the Derivative Works, in at least one
++          of the following places: within a NOTICE text file distributed
++          as part of the Derivative Works; within the Source form or
++          documentation, if provided along with the Derivative Works; or,
++          within a display generated by the Derivative Works, if and
++          wherever such third-party notices normally appear. The contents
++          of the NOTICE file are for informational purposes only and
++          do not modify the License. You may add Your own attribution
++          notices within Derivative Works that You distribute, alongside
++          or as an addendum to the NOTICE text from the Work, provided
++          that such additional attribution notices cannot be construed
++          as modifying the License.
++
++      You may add Your own copyright statement to Your modifications and
++      may provide additional or different license terms and conditions
++      for use, reproduction, or distribution of Your modifications, or
++      for any such Derivative Works as a whole, provided Your use,
++      reproduction, and distribution of the Work otherwise complies with
++      the conditions stated in this License.
++
++   5. Submission of Contributions. Unless You explicitly state otherwise,
++      any Contribution intentionally submitted for inclusion in the Work
++      by You to the Licensor shall be under the terms and conditions of
++      this License, without any additional terms or conditions.
++      Notwithstanding the above, nothing herein shall supersede or modify
++      the terms of any separate license agreement you may have executed
++      with Licensor regarding such Contributions.
++
++   6. Trademarks. This License does not grant permission to use the trade
++      names, trademarks, service marks, or product names of the Licensor,
++      except as required for reasonable and customary use in describing the
++      origin of the Work and reproducing the content of the NOTICE file.
++
++   7. Disclaimer of Warranty. Unless required by applicable law or
++      agreed to in writing, Licensor provides the Work (and each
++      Contributor provides its Contributions) on an "AS IS" BASIS,
++      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
++      implied, including, without limitation, any warranties or conditions
++      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
++      PARTICULAR PURPOSE. You are solely responsible for determining the
++      appropriateness of using or redistributing the Work and assume any
++      risks associated with Your exercise of permissions under this License.
++
++   8. Limitation of Liability. In no event and under no legal theory,
++      whether in tort (including negligence), contract, or otherwise,
++      unless required by applicable law (such as deliberate and grossly
++      negligent acts) or agreed to in writing, shall any Contributor be
++      liable to You for damages, including any direct, indirect, special,
++      incidental, or consequential damages of any character arising as a
++      result of this License or out of the use or inability to use the
++      Work (including but not limited to damages for loss of goodwill,
++      work stoppage, computer failure or malfunction, or any and all
++      other commercial damages or losses), even if such Contributor
++      has been advised of the possibility of such damages.
++
++   9. Accepting Warranty or Additional Liability. While redistributing
++      the Work or Derivative Works thereof, You may choose to offer,
++      and charge a fee for, acceptance of support, warranty, indemnity,
++      or other liability obligations and/or rights consistent with this
++      License. However, in accepting such obligations, You may act only
++      on Your own behalf and on Your sole responsibility, not on behalf
++      of any other Contributor, and only if You agree to indemnify,
++      defend, and hold each Contributor harmless for any liability
++      incurred by, or claims asserted against, such Contributor by reason
++      of your accepting any such warranty or additional liability.
++
++   END OF TERMS AND CONDITIONS
++
++   APPENDIX: How to apply the Apache License to your work.
++
++      To apply the Apache License to your work, attach the following
++      boilerplate notice, with the fields enclosed by brackets "[]"
++      replaced with your own identifying information. (Don't include
++      the brackets!)  The text should be enclosed in the appropriate
++      comment syntax for the file format. We also recommend that a
++      file or class name and description of purpose be included on the
++      same "printed page" as the copyright notice for easier
++      identification within third-party archives.
++
++   Copyright [yyyy] [name of copyright owner]
++
++   Licensed under the Apache License, Version 2.0 (the "License");
++   you may not use this file except in compliance with the License.
++   You may obtain a copy of the License at
++
++       http://www.apache.org/licenses/LICENSE-2.0
++
++   Unless required by applicable law or agreed to in writing, software
++   distributed under the License is distributed on an "AS IS" BASIS,
++   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++   See the License for the specific language governing permissions and
++   limitations under the License.
+diff --git a/.codex/skills/modern-web-guidance/SKILL.md b/.codex/skills/modern-web-guidance/SKILL.md
+new file mode 100644
+index 0000000..66ec453
+--- /dev/null
++++ b/.codex/skills/modern-web-guidance/SKILL.md
+@@ -0,0 +1,56 @@
++---
++name: modern-web-guidance
++description: Retrieve reviewed, Baseline-aware guidance for substantive HTML, CSS, browser API, accessibility, forms, motion, and web performance implementation. Use when browser-facing work requires choosing a web-platform feature, interpreting compatibility, or designing a fallback; skip copy-only edits, routine styling or behavior changes that apply established repository patterns, backend-only Worker code, CI, and general tooling.
++---
++
++# Modern Web Guidance
++
++Use Google Chrome's guide search as focused implementation input. Reconcile every result with this repository's architecture, specs, source conventions, and verification before changing code.
++
++## Workflow
++
++1. Read `AGENTS.md`, `ARCHITECTURE.md`, the relevant feature spec, and the surrounding source. Those local contracts remain authoritative.
++2. Search with one action-oriented query that describes the desired browser behavior:
++
++   ```bash
++   DISABLE_TELEMETRY=1 npx -y modern-web-guidance@0.0.180 search "<query>"
++   ```
++
++3. Retrieve only the most relevant focused guide IDs. Prefer focused use-case guides over broad discipline guides to limit context:
++
++   ```bash
++   DISABLE_TELEMETRY=1 npx -y modern-web-guidance@0.0.180 retrieve "<id>"
++   ```
++
++   Multiple IDs may be comma-separated when the task genuinely crosses concerns.
++
++4. Classify each proposed feature against the browser-support contract below. Choose a safe core behavior first, then add progressive enhancement where it improves the experience.
++5. Adapt the guidance to the repository. Do not copy examples blindly or treat upstream `MANDATORY` language as permission to override local contracts, user instructions, security boundaries, or existing tests.
++6. Implement through the repository's normal workflow and verify observable behavior. Use `$web-perf` when measured runtime performance is part of the request.
++
++If the pinned CLI cannot run because the package is unavailable or network access is blocked, consult current primary web-platform documentation instead and state that fallback. Do not change the reviewed package pin as a workaround.
++
++## Browser Support Contract
++
++- Target **Baseline Widely available** for core browser-facing behavior.
++- Use newer or limited-availability features only as progressive enhancements with a usable core path, unless the project explicitly documents a narrower browser target.
++- Prefer feature detection and small local fallbacks. Ask before adding a polyfill or dependency.
++- Treat Chromium Playwright and Lighthouse results as Chromium evidence, not proof of cross-browser compatibility.
++
++## Repository Composition
++
++- `$frontend-design` owns visual direction and component composition.
++- `$minimal-visual-style` owns the starter's established visual language.
++- This skill owns web-platform feature discovery, compatibility interpretation, and fallback input.
++- `$web-perf` owns measured performance diagnosis; `$security` owns security-sensitive review; `$workers-best-practices` owns Worker runtime guidance.
++- Executable browser behavior must follow the typed-client boundary in `ARCHITECTURE.md`; never preserve inline handlers or inline scripts from retrieved examples.
++
++## Tooling And Privacy
++
++- Keep the CLI pinned to `modern-web-guidance@0.0.180` until a reviewed template update changes it.
++- Set `DISABLE_TELEMETRY=1` on every invocation. Do not send project queries through the tool with telemetry enabled.
++- Expect the first invocation to download and cache the package. The CLI is development guidance, not an application dependency or quality gate.
++
++## Provenance
++
++Adapted from Google Chrome's Apache-2.0-licensed [`modern-web-guidance`](https://github.com/GoogleChrome/modern-web-guidance) publish snapshot at revision `684ab9d7c6b78fc2cd5677912d874397cb2e5dfa`. That snapshot labels itself `0.0.179`; it is instruction provenance, not the CLI release coordinate. The separately reviewed `modern-web-guidance@0.0.180` npm artifact points to [`modern-web-guidance-src`](https://github.com/GoogleChrome/modern-web-guidance-src) tag `v0.0.180` and commit `29ecd9546013e32e0a597ad5ab3a2fc26add1f1d`, with npm integrity `sha512-55diU2dH4nMF2DKWmvOdeLKWUvTTz32UIcSlYFSa+AN699MVC7pvqJ4mlFMmPd7qfnRJiP/FxKcSkIOP0MSDDw==`. The local adaptation narrows activation, pins retrieval, disables telemetry, and keeps repository contracts authoritative.
+diff --git a/.codex/skills/modern-web-guidance/agents/openai.yaml b/.codex/skills/modern-web-guidance/agents/openai.yaml
+new file mode 100644
+index 0000000..7f253fb
+--- /dev/null
++++ b/.codex/skills/modern-web-guidance/agents/openai.yaml
+@@ -0,0 +1,6 @@
++interface:
++  display_name: "Modern Web Guidance"
++  short_description: "Retrieve current web platform implementation guidance"
++  default_prompt: "Use $modern-web-guidance to choose current browser APIs and compatible fallbacks for this web task."
++policy:
++  allow_implicit_invocation: true
+diff --git a/AGENTS.md b/AGENTS.md
+index d7cda62..802fe11 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -77,6 +77,12 @@
+ - Use the project-local [`frontend-design`](./.codex/skills/frontend-design/SKILL.md) skill for substantial UI work such as page redesigns, component styling, app shells, and frontend experiments.
+ - Treat the skill as guidance for producing distinctive frontend work without compromising the template's lightweight and reusable nature unless the user explicitly asks for a more opinionated direction.
+
++## Modern Web Platform
++
++- Use the project-local [`modern-web-guidance`](./.codex/skills/modern-web-guidance/SKILL.md) skill when browser-facing work requires choosing an HTML, CSS, or Web API feature, interpreting compatibility, or designing a fallback; skip it for backend-only work, routine changes that apply established repository patterns, and general tooling.
++- Keep repository architecture, specs, source conventions, and tests authoritative over retrieved examples.
++- Target Baseline Widely available for core behavior. Use newer features as progressive enhancements unless the project explicitly documents a narrower browser target, and do not treat Chromium-only checks as proof of cross-browser compatibility.
++
+ ## Brainstorming
+
+ - Use the project-local [`brainstorming`](./.codex/skills/brainstorming/SKILL.md) skill when the user is exploring options, shaping a feature, or comparing approaches before implementation.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index cc435a2..8749b50 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -25,6 +25,8 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ ## Tooling Baseline
+
+ - Local development and local CI target macOS as the supported host platform baseline.
++- Browser-facing core behavior targets Baseline Widely available. Features outside that target require a usable core path or an explicitly documented narrower browser policy; Chromium-only browser checks do not establish cross-browser compatibility.
++- Use the scoped `modern-web-guidance` skill as pinned, telemetry-disabled implementation input for substantive web-platform decisions. Repository architecture, specs, source conventions, and verification remain authoritative, and upstream upgrades require deliberate review.
+ - Use a connected Cloudflare MCP as the retrieval and account-operation layer for current Cloudflare product work. Keep only the `workers-best-practices` and `wrangler` skills in the template baseline; add product-specific Cloudflare skills when a project actually adopts those products.
+ - Node is pinned exactly through `package.json`, and npm is constrained to a compatible major there instead of an exact patch pin.
+ - The verification baseline is split into a fast gate and a browser gate so quick checks can return earlier without dropping full coverage.
+diff --git a/README.md b/README.md
+index 5090284..1ab2e87 100644
+--- a/README.md
++++ b/README.md
+@@ -46,6 +46,7 @@ The repository includes focused instructions under `.codex/skills/` that help co
+
+ - [`$frontend-design`](.codex/skills/frontend-design/SKILL.md) — design or substantially revise production-quality UI while preserving the starter's reusable nature.
+ - [`$minimal-visual-style`](.codex/skills/minimal-visual-style/SKILL.md) — extend the existing minimal, editorial, token-driven visual language.
++- [`$modern-web-guidance`](.codex/skills/modern-web-guidance/SKILL.md) — retrieve pinned, telemetry-disabled, Baseline-aware implementation guidance for substantive browser-platform work.
+ - [`$web-perf`](.codex/skills/web-perf/SKILL.md) — audit Core Web Vitals, loading behavior, network costs, layout shifts, and related accessibility signals.
+
+ ### Cloudflare and Validation
+diff --git a/docs/adrs/README.md b/docs/adrs/README.md
+index a132e7f..85e11c7 100644
+--- a/docs/adrs/README.md
++++ b/docs/adrs/README.md
+@@ -84,6 +84,7 @@ No accepted-only ADRs are currently pending implementation.
+ | [ADR-049](./implemented/ADR-049-adopt-local-spec-and-tdd-skills.md)                    | Implemented | Add repository-local spec synthesis and focused red-green implementation skills.                  |
+ | [ADR-050](./implemented/ADR-050-add-early-architecture-feedback.md)                    | Implemented | Add ownership contracts, structural smoke alarms, and capability architecture review.             |
+ | [ADR-051](./implemented/ADR-051-add-approval-gated-project-start.md)                   | Implemented | Add a read-only project-start plan before approved pruning of a fresh clone.                      |
++| [ADR-052](./implemented/ADR-052-adopt-scoped-modern-web-guidance.md)                   | Implemented | Add pinned, telemetry-disabled web-platform guidance with explicit browser-support boundaries.    |
+
+ ## Creating A New ADR
+
+diff --git a/docs/adrs/implemented/ADR-052-adopt-scoped-modern-web-guidance.md b/docs/adrs/implemented/ADR-052-adopt-scoped-modern-web-guidance.md
+new file mode 100644
+index 0000000..a49a57f
+--- /dev/null
++++ b/docs/adrs/implemented/ADR-052-adopt-scoped-modern-web-guidance.md
+@@ -0,0 +1,68 @@
++# ADR-052: Adopt Scoped Modern Web Guidance
++
++**Status:** Implemented
++
++**Date:** 2026-08-10
++
++## Context
++
++The template is an AI-assisted, browser-facing Worker starter. Its local frontend skills cover design direction, established visual style, and measured performance, but they do not provide a focused way to discover current HTML, CSS, Web API, browser-support, and fallback patterns before implementation.
++
++Google Chrome's Modern Web Guidance provides that retrieval layer, but its preview skill declares itself mandatory for nearly every frontend task, runs a mutable `@latest` package, enables anonymous tool telemetry by default, and treats retrieved guides as the preferred project standard. Installing it unchanged would broaden routine task latency and let external guidance drift outside this repository's reviewable architecture and spec model.
++
++The current browser gate uses Chromium. The repository also lacks an explicit browser-support target, so adopting compatibility guidance without documenting that boundary would imply a broader verification claim than the tooling proves.
++
++## Decision
++
++Vendor a locally adapted `modern-web-guidance` skill under `.codex/skills/` from the `GoogleChrome/modern-web-guidance` publish snapshot at revision `684ab9d7c6b78fc2cd5677912d874397cb2e5dfa`. Treat that revision as instruction provenance only: its package metadata labels it `0.0.179`.
++
++Independently pin search and retrieval to the reviewed npm artifact `modern-web-guidance@0.0.180`. The registry records that artifact against `GoogleChrome/modern-web-guidance-src` tag `v0.0.180` and commit `29ecd9546013e32e0a597ad5ab3a2fc26add1f1d`, with integrity `sha512-55diU2dH4nMF2DKWmvOdeLKWUvTTz32UIcSlYFSa+AN699MVC7pvqJ4mlFMmPd7qfnRJiP/FxKcSkIOP0MSDDw==`. Keep the instruction snapshot and executable package coordinates distinct during future reviews.
++
++Narrow automatic activation to browser-facing work that needs a web-platform choice, compatibility interpretation, or fallback decision. Pin every search and retrieval command to the reviewed package version, disable telemetry on every invocation, retrieve focused guides on demand, and keep repository architecture, specs, source conventions, user instructions, and verification authoritative over guide examples.
++
++Target Baseline Widely available for core browser behavior. Use newer features only as progressive enhancements with a usable core path unless a project explicitly documents a narrower browser target. Treat Chromium Playwright and Lighthouse output as Chromium evidence rather than cross-browser proof.
++
++Do not vendor the upstream guide corpus or Chrome Extensions pack, add an application dependency, create an automatic updater, or add a CI gate for the guidance tool.
++
++## Trigger
++
++The user reviewed the fit analysis and approved the controlled integration after a pinned, telemetry-disabled pilot returned useful guidance for dialog behavior, container queries, and LCP image priority.
++
++## Consequences
++
++**Positive:**
++
++- Agents gain current, focused web-platform and compatibility input before making substantive frontend implementation choices.
++- Native HTML and CSS patterns can reduce unnecessary client JavaScript and dependency pressure.
++- Pinned retrieval, disabled telemetry, provenance, and local-authority rules keep the workflow reviewable.
++- The browser-support target makes fallback decisions explicit without expanding the browser CI matrix.
++
++**Negative:**
++
++- The first invocation downloads and caches a sizeable external npm package.
++- The pinned guide set can become stale and requires deliberate review to upgrade.
++- Agents must reconcile occasional upstream examples with local rules instead of copying them directly.
++- Baseline Widely available is a feature-selection policy, not evidence that every browser has been tested.
++
++**Neutral:**
++
++- The skill changes agent implementation workflow, not Worker runtime behavior or the package dependency graph.
++- Existing frontend design, visual style, security, Worker, and performance skills keep their current ownership.
++
++## Alternatives Considered
++
++### Install The Upstream Skill Unchanged
++
++This preserves automatic updates and upstream activation, but it invokes a mutable package for routine frontend work, enables telemetry unless separately configured, and gives external guide language too much authority over local contracts.
++
++### Vendor The Complete Guide Corpus
++
++This improves offline availability but adds a large, fast-moving documentation and model snapshot to a template designed to stay lightweight and easy to prune.
++
++### Consult Web Documentation Ad Hoc
++
++This adds no local skill, but it depends on agents recognizing every relevant platform decision and finding a focused guide consistently. The pilot showed useful retrieval value beyond the existing design and performance workflows.
++
++### Wait Until The Upstream Project Leaves Preview
++
++This avoids near-term maintenance, but the scoped, pinned integration contains the preview risks while delivering immediate value to the template's browser-facing work.
+diff --git a/specs/agent-skills/spec.md b/specs/agent-skills/spec.md
+index 6a8066e..61088bc 100644
+--- a/specs/agent-skills/spec.md
++++ b/specs/agent-skills/spec.md
+@@ -12,6 +12,8 @@ Once decisions settle, the template should provide a direct repository-local pat
+
+ Users also need a concise README catalog that makes the available skills discoverable, explains the job each one performs, and shows how to request one without reading every skill file first.
+
++Browser-facing implementation needs current web-platform and compatibility guidance without making a preview tool, a large vendored guide corpus, or a moving `@latest` package part of the application or quality gate.
++
+ ### Architecture
+
+ - **Canonical project-local skill root:** `.codex/skills/`
+@@ -34,6 +36,12 @@ Users also need a concise README catalog that makes the available skills discove
+ - **Behavior-first implementation skill:** `.codex/skills/tdd/`
+ - **Capability architecture review skill:** `.codex/skills/architecture-review/`
+ - **Architecture-feedback integration:** review-skill behavior is owned here; `specs/architecture-feedback/spec.md` owns its composition with deterministic source-shape evidence
++- **Web-platform implementation skill:** `.codex/skills/modern-web-guidance/`
++- **Web-platform instruction snapshot:** `GoogleChrome/modern-web-guidance` revision `684ab9d7c6b78fc2cd5677912d874397cb2e5dfa`, which labels itself `0.0.179`
++- **Web-platform CLI artifact:** telemetry-disabled `modern-web-guidance@0.0.180`, sourced from `GoogleChrome/modern-web-guidance-src` tag `v0.0.180` and commit `29ecd9546013e32e0a597ad5ab3a2fc26add1f1d`, with npm integrity `sha512-55diU2dH4nMF2DKWmvOdeLKWUvTTz32UIcSlYFSa+AN699MVC7pvqJ4mlFMmPd7qfnRJiP/FxKcSkIOP0MSDDw==`
++- **Browser-support target:** Baseline Widely available for core behavior, with progressive enhancement for newer features unless a project records a narrower target
++- **Guidance authority:** retrieved guidance informs implementation; repository architecture, specs, source conventions, and verification remain authoritative
++- **Browser verification boundary:** the current Playwright and Lighthouse setup provides Chromium evidence and does not claim cross-browser compatibility
+ - **User-facing skill catalog:** `README.md`
+
+ ### Anti-Patterns
+@@ -53,6 +61,10 @@ Users also need a concise README catalog that makes the available skills discove
+ - Do not let project initialization edit or prune a clone before the user approves an exact plan.
+ - Do not duplicate complete skill workflows in the README; link to each `SKILL.md` as the source of truth.
+ - Do not treat structural metrics as a substitute for reviewing capability ownership and dependency direction.
++- Do not invoke Modern Web Guidance for backend-only work, routine styling or behavior changes that apply established repository patterns, copy changes, CI, or general tooling.
++- Do not replace the pinned Modern Web Guidance CLI with `@latest`, enable its telemetry, or install its full guide corpus as a repository dependency.
++- Do not copy retrieved examples across local architecture or security boundaries, including the typed-client rule for browser behavior.
++- Do not infer cross-browser compatibility from Chromium-only automated checks.
+
+ ## Contract
+
+@@ -72,6 +84,9 @@ Users also need a concise README catalog that makes the available skills discove
+ - [ ] The README explains natural matching, named `$skill` invocation, and which workflows require explicit invocation.
+ - [ ] The template includes a model-invoked `architecture-review` skill that combines durable capability contracts, deterministic source-shape checks, and advisory Fallow evidence.
+ - [ ] The template includes an explicitly invoked `start-project` skill whose behavior is owned by `specs/project-start/spec.md`.
++- [ ] The template includes a narrowly routed `modern-web-guidance` skill with reviewed provenance, an adjacent Apache-2.0 license, valid UI metadata, a pinned CLI version, and telemetry-disabled commands.
++- [ ] The browser-support target and the Chromium-only verification boundary are explicit in durable architecture and agent guidance.
++- [ ] Modern Web Guidance adds no application dependency, vendored guide corpus, automatic update path, or CI gate.
+
+ ### Regression Guardrails
+
+@@ -83,6 +98,9 @@ Users also need a concise README catalog that makes the available skills discove
+ - To Spec must stop rather than invent an answer when a material contract or architecture decision remains unresolved.
+ - TDD must prove the intended missing behavior with a failing test before changing production code.
+ - TDD must allow explicit alternative verification for documentation, prototypes, generated output, and mechanical changes.
++- Modern Web Guidance upgrades must be reviewed deliberately and update the instruction snapshot, package version, source tag and commit, npm integrity, provenance, spec, ADR or successor decision, and portable update path together.
++- Features outside Baseline Widely available must preserve a usable core path unless a project explicitly records a narrower browser target.
++- Retrieved guidance must not override repository architecture, user instructions, dependency approval, or deterministic verification.
+
+ ### Verification
+
+@@ -94,6 +112,7 @@ Users also need a concise README catalog that makes the available skills discove
+ - **Specification and TDD structure:** apply the same metadata validation to `.codex/skills/to-spec/` and `.codex/skills/tdd/`
+ - **Architecture review structure:** validate `.codex/skills/architecture-review/` metadata and confirm its workflow routes lasting outcomes into architecture docs, ADRs, or specs
+ - **Project start structure:** validate `.codex/skills/start-project/` metadata and confirm its workflow is read-only until the exact pruning plan is approved
++- **Modern web structure:** validate `.codex/skills/modern-web-guidance/`, confirm its commands pin `modern-web-guidance@0.0.180` with `DISABLE_TELEMETRY=1`, confirm `@latest` is absent, and verify the recorded npm source commit and integrity against registry metadata
+ - **README catalog:** confirm every `.codex/skills/*/SKILL.md` has a corresponding README link and that explicit-only workflows are identified
+
+ ### Scenarios
+@@ -175,3 +194,27 @@ Users also need a concise README catalog that makes the available skills discove
+ - Given: a capability is growing and source-shape or Fallow evidence indicates concentrated responsibility
+ - When: the agent uses Architecture Review
+ - Then: it returns Proceed, Consolidate first, or Decision required based on ownership and dependency evidence rather than recommending mechanical file splitting
++
++**Scenario: Substantive browser behavior needs a platform choice**
++
++- Given: a browser-facing task requires choosing an HTML or CSS platform feature, a browser API, a compatibility interpretation, or a fallback
++- When: an agent prepares the implementation
++- Then: it uses the pinned, telemetry-disabled Modern Web Guidance search and retrieves only focused relevant guides before adapting them to repository contracts
++
++**Scenario: Retrieved guidance conflicts with the repository**
++
++- Given: a retrieved example uses an inline handler, an unapproved dependency, or another pattern disallowed by local architecture
++- When: the agent applies the guidance
++- Then: it preserves the underlying platform recommendation while implementing it through the repository's typed, dependency-approved seams
++
++**Scenario: Feature is newer than the browser target**
++
++- Given: a useful feature is not Baseline Widely available
++- When: the agent proposes using it
++- Then: the feature progressively enhances a usable core path unless the project explicitly records a narrower browser target
++
++**Scenario: Browser task does not need platform guidance**
++
++- Given: a change only adjusts copy or applies established styling or behavior patterns without choosing a platform feature, interpreting compatibility, or designing a fallback
++- When: the agent routes the task
++- Then: it skips Modern Web Guidance and follows the smaller relevant workflow

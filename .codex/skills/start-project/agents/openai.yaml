@@ -1,0 +1,6 @@
+interface:
+  display_name: "Start Project"
+  short_description: "Turn the template into a focused project"
+  default_prompt: "Use $start-project to define the first closed product loop and propose a safe template-pruning plan."
+policy:
+  allow_implicit_invocation: false

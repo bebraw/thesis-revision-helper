@@ -1,0 +1,392 @@
+diff --git a/.architecture-check.json b/.architecture-check.json
+new file mode 100644
+index 0000000..b66c3f5
+--- /dev/null
++++ b/.architecture-check.json
+@@ -0,0 +1,29 @@
++{
++  "sourceRoots": ["src"],
++  "extensions": [".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"],
++  "excludeSuffixes": [
++    ".test.ts",
++    ".test.tsx",
++    ".test.js",
++    ".test.jsx",
++    ".test.mjs",
++    ".test.cjs",
++    ".test.mts",
++    ".test.cts",
++    ".e2e.ts",
++    ".e2e.tsx",
++    ".e2e.js",
++    ".e2e.jsx",
++    ".e2e.mjs",
++    ".e2e.cjs",
++    ".e2e.mts",
++    ".e2e.cts",
++    ".d.ts",
++    ".d.mts",
++    ".d.cts"
++  ],
++  "maxFileLines": 1000,
++  "maxDirectoryFiles": 40,
++  "fileExceptions": {},
++  "directoryExceptions": {}
++}
+diff --git a/.codex/skills/architecture-review/SKILL.md b/.codex/skills/architecture-review/SKILL.md
+new file mode 100644
+index 0000000..d16c436
+--- /dev/null
++++ b/.codex/skills/architecture-review/SKILL.md
+@@ -0,0 +1,47 @@
++---
++name: architecture-review
++description: Review whether a growing capability still has clear source ownership, composition, state authority, public seams, and dependency direction. Use when adding or materially expanding an independently evolvable capability, when source-shape limits or Fallow hotspots surface, or when the user asks whether the codebase should consolidate before further feature work.
++---
++
++# Architecture Review
++
++Decide whether a capability can expand safely or needs consolidation. Treat structural metrics as evidence, not as architecture by themselves.
++
++## Establish the contract
++
++Read `AGENTS.md`, `ARCHITECTURE.md`, the relevant feature specs, and related ADRs. For a product capability, identify:
++
++- the product capability and its current source root;
++- the composition root that wires it into the application;
++- the authority for its persistent and canonical state;
++- its public contracts and dependents; and
++- the permitted dependency direction.
++
++For a cross-cutting workflow, identify the owner of each component plus the integration contract and composition root. Do not force one source root onto a deliberately distributed capability.
++
++If these cannot be named from durable repository context, report that as the primary finding.
++
++## Collect structural evidence
++
++1. Read `.architecture-check.json`, then run `npm run quality:structure`. Treat a pass as evidence only for the configured roots. A failure is a checkpoint, not an instruction to split files mechanically.
++2. Run `npm run diagnostics:health` for file size, fan-in, fan-out, churn hotspots, refactoring targets, and type coupling.
++3. Run `npm run diagnostics:map` only when the import topology remains unclear and the ignored `.fallow/codebase-map.html` artifact will materially help.
++4. Inspect the affected capability for mixed authorities that metrics cannot prove, such as one coordinator owning rendering, event binding, and feature orchestration or one persistence component spanning unrelated lifecycles.
++
++## Decide
++
++Return one disposition:
++
++- **Proceed:** ownership and dependency direction are clear, and structural pressure is proportionate.
++- **Consolidate first:** mixed authority, continued hotspot growth, broad coupling, or flat-directory pressure would make another capability harder to place.
++- **Decision required:** credible boundary alternatives would change a lasting constraint; propose an ADR before implementation.
++
++Prioritize evidence by future change cost. For each finding, name the affected capability, concrete source locations, why the current shape impairs ownership, and the smallest coherent correction. Do not recommend layers, packages, or abstractions without a demonstrated responsibility boundary.
++
++## Boundaries
++
++- Do not treat a passing functional quality gate as evidence of navigable architecture.
++- Do not split files merely to satisfy a numeric threshold.
++- Do not invent capability directories before the product has the corresponding responsibilities.
++- Do not require GitHub issues, pull requests, or a persisted review report.
++- Record lasting outcomes in `ARCHITECTURE.md`, an ADR, or the relevant feature spec when the user asks to implement them.
+diff --git a/.codex/skills/architecture-review/agents/openai.yaml b/.codex/skills/architecture-review/agents/openai.yaml
+new file mode 100644
+index 0000000..3714f36
+--- /dev/null
++++ b/.codex/skills/architecture-review/agents/openai.yaml
+@@ -0,0 +1,4 @@
++interface:
++  display_name: "Architecture Review"
++  short_description: "Review capability ownership and structural pressure"
++  default_prompt: "Use $architecture-review to check whether this capability should expand or consolidate first."
+diff --git a/AGENTS.md b/AGENTS.md
+index 784518f..b410a74 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -100,6 +100,12 @@
+ - Work in focused red-green slices with independent expected values and tests through public interfaces.
+ - Skip TDD for documentation-only, prototype, generated, and purely mechanical changes; state the alternative verification instead.
+-
++
++## Architecture Review
++
++- Use the project-local [`architecture-review`](./.codex/skills/architecture-review/SKILL.md) skill when adding or materially expanding an independently evolvable capability, when structural checks or Fallow diagnostics surface pressure, or when the user asks whether to consolidate before expanding scope.
++- Treat source-shape thresholds as architecture checkpoints rather than instructions to split files mechanically.
++- Require exact, rationale-bearing exceptions in `.architecture-check.json` when an oversized file or crowded directory is intentionally retained.
++
+ ## Review
+-
++
+ - Use the project-local [`review`](./.codex/skills/review/SKILL.md) skill when the user asks for review, risk analysis, or a merge-readiness pass.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 4e66b1d..a2780f7 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -15,6 +15,8 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ - Add or update a template update pack in `.template/updates/` in the same change set whenever a reusable template maintenance change should be portable to downstream projects.
+ - Keep optional multi-session discovery maps under `docs/wayfinding/<effort>.md`. Treat them as working context rather than durable authority, and promote lasting outcomes into `ARCHITECTURE.md`, ADRs, or feature specs.
+ - Use focused red-green slices for observable runtime behavior and regression fixes when a stable test seam exists. When no meaningful failing test can be written, use and state the relevant deterministic verification instead.
++- For every new or materially expanded independently evolvable capability, record its source root, composition root, state authority, public contracts, and dependency direction in the relevant feature spec.
++- Treat `.architecture-check.json` limits as generous smoke alarms for architectural review. Do not split code mechanically to satisfy them; consolidate responsibilities or add an exact rationale-bearing exception.
+ - Keep the quality gate green before considering a change ready.
+ - Keep workflow writes explicit. New generated output, local state, cache, archive, or tool-artifact paths should be documented in the same change that introduces them.
+ - Do not place executable browser code inline in Worker-rendered HTML. Client behavior should live in typed TypeScript modules before it is served to browsers.
+@@ -27,6 +29,7 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ - The verification baseline is split into a fast gate and a browser gate so quick checks can return earlier without dropping full coverage.
+ - The repo-managed `pre-push` Git hook should run affected-file guardrails before code is pushed.
+ - Formatting, Oxlint correctness checks, type checking, unit tests, and end-to-end tests are part of the baseline quality gate.
++- The fast and affected quality paths enforce extreme source-file and flat-directory limits through `npm run quality:structure`; Fallow remains the richer advisory layer for coupling, churn, complexity, and refactoring evidence.
+ - Keep incremental mutation testing in an explicit deep local gate instead of making it an unconditional baseline phase. GitHub remains responsible for the clean full mutation signal on runtime-relevant changes.
+ - Keep duplicated `.github/skills/` content and vendored `.codex/skills/**/references/` material outside the Prettier baseline. Continue formatting project-owned skill entry points, specs, ADRs, and documentation.
+ - Cache successful Prettier checks by file content under ignored `.cache/prettier` so repeated local gates avoid unchanged files without trusting timestamps.
+diff --git a/docs/development.md b/docs/development.md
+index 3cce4ca..64092b4 100644
+--- a/docs/development.md
++++ b/docs/development.md
+@@ -69,6 +69,7 @@ Use targeted checks while iterating, then run the checks that match the change b
+ - TypeScript or typed tooling changes: `npm run typecheck`
+ - Runtime `src/` changes while iterating: `npm run typecheck` and `npm run test:affected`
+ - Browser behavior or UI changes: `npm run quality:gate`
++- Extreme source-file or flat-directory growth: `npm run quality:structure`
+ - Readability, complexity, duplication, or cleanup review: `npm run diagnostics:codebase`
+ - Baseline readiness for non-documentation changes: `npm run quality:gate`
+ - Workflow-sensitive changes or explicit full PR/release readiness: `npm run quality:gate` and `npm run ci:local`
+@@ -99,6 +100,8 @@ Prettier formats project-owned code and documentation. The committed `.prettieri
+-
++
+ Fallow provides advisory codebase readability diagnostics. `npm run diagnostics:readability` runs a changed-code audit for complexity, duplication, dependency hygiene, and cleanup findings while relaxing CRAP-score noise from untested tooling scripts. `npm run diagnostics:health` reports whole-repo health scoring, hotspots, refactoring targets, and advisory public-signature type coupling. `npm run diagnostics:codebase` runs both. These commands use Fallow's best-effort type-aware mode for exact-symbol evidence while leaving compiler diagnostics to `npm run typecheck` and local lint rules to Oxlint.
+-
++
++`npm run quality:structure` scans production JavaScript and TypeScript under the roots configured in `.architecture-check.json`. It fails when a non-exempt source file exceeds 1,000 lines or one directory contains more than 40 direct source files. These intentionally generous limits are smoke alarms: use `$architecture-review` and the Fallow diagnostics to evaluate ownership before expanding the capability. Intentional exceptions must name the exact file or directory and include a rationale in the config.
++
+ `npm run diagnostics:map` generates a read-only interactive treemap and import graph at `.fallow/codebase-map.html`; open that file in a browser after generation. All diagnostic commands use `--no-cache`. The map is the only normal diagnostic artifact, and its ignored `.fallow/` location also contains any caches contributors create with manual Fallow commands.
+-
++
+ The project Fallow config ignores `typescript-7` because the typecheck script executes that aliased compiler directly from `node_modules` rather than importing it, and ignores the Stryker API package referenced only through tooling JSDoc types.
+diff --git a/package.json b/package.json
+index 687706b..8f69a1c 100644
+--- a/package.json
++++ b/package.json
+@@ -35,7 +35,8 @@
+     "quality:affected": "node ./scripts/run-affected-guardrails.mjs",
+     "quality:gate": "node ./scripts/run-quality-gate.mjs",
+     "quality:gate:deep": "node ./scripts/run-quality-gate.mjs --deep",
+-    "quality:gate:fast": "npm run format:check && npm run lint && npm run typecheck && npm run worker:client-guard && npm run test:tooling && npm run security:audit && npm run test:coverage",
++    "quality:gate:fast": "npm run format:check && npm run lint && npm run typecheck && npm run quality:structure && npm run worker:client-guard && npm run test:tooling && npm run security:audit && npm run test:coverage",
++    "quality:structure": "node ./scripts/check-source-shape.mjs",
+     "security:audit": "npm audit --omit=dev --audit-level high",
+     "test": "vitest run --passWithNoTests",
+     "test:affected": "node ./scripts/run-affected-tests.mjs",
+diff --git a/scripts/check-source-shape.mjs b/scripts/check-source-shape.mjs
+new file mode 100644
+index 0000000..02295ba
+--- /dev/null
++++ b/scripts/check-source-shape.mjs
+@@ -0,0 +1,124 @@
++import { readFile, readdir } from "node:fs/promises";
++import { extname, join, relative, sep } from "node:path";
++import process from "node:process";
++import { fileURLToPath } from "node:url";
++
++const defaultRepoRoot = fileURLToPath(new URL("..", import.meta.url));
++const defaultConfigPath = join(defaultRepoRoot, ".architecture-check.json");
++
++export async function inspectSourceShape({ config, repoRoot }) {
++  validateConfig(config);
++
++  const fileViolations = [];
++  const directoryViolations = [];
++
++  for (const sourceRoot of config.sourceRoots) {
++    await inspectDirectory(join(repoRoot, sourceRoot), repoRoot, config, fileViolations, directoryViolations);
++  }
++
++  return {
++    directoryViolations: directoryViolations.sort(comparePaths),
++    fileViolations: fileViolations.sort(comparePaths),
++  };
++}
++
++async function inspectDirectory(directory, repoRoot, config, fileViolations, directoryViolations) {
++  let entries;
++
++  try {
++    entries = await readdir(directory, { withFileTypes: true });
++  } catch (error) {
++    if (error?.code === "ENOENT") return;
++    throw error;
++  }
++
++  const sourceFiles = entries.filter((entry) => entry.isFile() && isSourceFile(entry.name, config));
++  const directoryPath = normalizePath(relative(repoRoot, directory));
++
++  if (sourceFiles.length > config.maxDirectoryFiles && !(directoryPath in config.directoryExceptions)) {
++    directoryViolations.push({ files: sourceFiles.length, limit: config.maxDirectoryFiles, path: directoryPath });
++  }
++
++  for (const entry of sourceFiles) {
++    const absolutePath = join(directory, entry.name);
++    const filePath = normalizePath(relative(repoRoot, absolutePath));
++    const source = await readFile(absolutePath, "utf8");
++    const lines = countLines(source);
++
++    if (lines > config.maxFileLines && !(filePath in config.fileExceptions)) {
++      fileViolations.push({ lines, limit: config.maxFileLines, path: filePath });
++    }
++  }
++
++  for (const entry of entries.filter((candidate) => candidate.isDirectory())) {
++    await inspectDirectory(join(directory, entry.name), repoRoot, config, fileViolations, directoryViolations);
++  }
++}
++
++function isSourceFile(name, config) {
++  return config.extensions.includes(extname(name)) && config.excludeSuffixes.every((suffix) => !name.endsWith(suffix));
++}
++
++function countLines(source) {
++  if (source.length === 0) return 0;
++  const lines = source.split("\n").length;
++  return source.endsWith("\n") ? lines - 1 : lines;
++}
++
++function validateConfig(config) {
++  for (const key of ["sourceRoots", "extensions", "excludeSuffixes"]) {
++    if (!Array.isArray(config[key]) || config[key].some((value) => typeof value !== "string" || value.length === 0)) {
++      throw new Error(`${key} must contain non-empty strings.`);
++    }
++  }
++
++  for (const key of ["maxFileLines", "maxDirectoryFiles"]) {
++    if (!Number.isInteger(config[key]) || config[key] < 1) throw new Error(`${key} must be a positive integer.`);
++  }
++
++  validateExceptions("fileExceptions", config.fileExceptions);
++  validateExceptions("directoryExceptions", config.directoryExceptions);
++}
++
++function validateExceptions(key, exceptions) {
++  if (exceptions === null || typeof exceptions !== "object" || Array.isArray(exceptions)) {
++    throw new Error(`${key} must be an object of paths and rationales.`);
++  }
++
++  for (const [path, rationale] of Object.entries(exceptions)) {
++    if (typeof rationale !== "string" || rationale.trim().length === 0) {
++      throw new Error(`${key} entry ${path} must include a rationale.`);
++    }
++  }
++}
++
++function normalizePath(path) {
++  return path.split(sep).join("/");
++}
++
++function comparePaths(left, right) {
++  return left.path.localeCompare(right.path);
++}
++
++async function run() {
++  const config = JSON.parse(await readFile(defaultConfigPath, "utf8"));
++  const result = await inspectSourceShape({ config, repoRoot: defaultRepoRoot });
++
++  if (result.fileViolations.length === 0 && result.directoryViolations.length === 0) return;
++
++  console.error("Source shape crossed an architecture review threshold.");
++
++  for (const violation of result.fileViolations) {
++    console.error(`- ${violation.path}: ${violation.lines} lines (limit ${violation.limit})`);
++  }
++
++  for (const violation of result.directoryViolations) {
++    console.error(`- ${violation.path}: ${violation.files} direct source files (limit ${violation.limit})`);
++  }
++
++  console.error("Run npm run diagnostics:health and use $architecture-review before expanding the affected capability.");
++  console.error("If the shape is intentional, record an exact exception with a rationale in .architecture-check.json.");
++  process.exitCode = 1;
++}
++
++if (import.meta.url === `file://${process.argv[1]}`) await run();
+diff --git a/scripts/check-source-shape.test.mjs b/scripts/check-source-shape.test.mjs
+new file mode 100644
+index 0000000..e84ad93
+--- /dev/null
++++ b/scripts/check-source-shape.test.mjs
+@@ -0,0 +1,80 @@
++import assert from "node:assert/strict";
++import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++import test from "node:test";
++
++import { inspectSourceShape } from "./check-source-shape.mjs";
++
++const baseConfig = {
++  directoryExceptions: {},
++  excludeSuffixes: [".test.ts", ".d.ts"],
++  extensions: [".ts"],
++  fileExceptions: {},
++  maxDirectoryFiles: 2,
++  maxFileLines: 4,
++  sourceRoots: ["src"],
++};
++
++test("reports oversized source files and crowded direct directories", async (context) => {
++  const root = await createFixture(context);
++  await writeFixture(root, "src/feature/large.ts", "one\ntwo\nthree\nfour\nfive\n");
++  await writeFixture(root, "src/feature/second.ts", "export {};\n");
++  await writeFixture(root, "src/feature/third.ts", "export {};\n");
++
++  const result = await inspectSourceShape({ config: baseConfig, repoRoot: root });
++
++  assert.deepEqual(result.fileViolations, [{ lines: 5, limit: 4, path: "src/feature/large.ts" }]);
++  assert.deepEqual(result.directoryViolations, [{ files: 3, limit: 2, path: "src/feature" }]);
++});
++
++test("ignores test files and counts directory files without recursing", async (context) => {
++  const root = await createFixture(context);
++  await writeFixture(root, "src/feature/first.ts", "export {};\n");
++  await writeFixture(root, "src/feature/first.test.ts", "one\ntwo\nthree\nfour\nfive\n");
++  await writeFixture(root, "src/feature/nested/second.ts", "export {};\n");
++  await writeFixture(root, "src/feature/nested/third.ts", "export {};\n");
++
++  const result = await inspectSourceShape({ config: baseConfig, repoRoot: root });
++
++  assert.deepEqual(result, { directoryViolations: [], fileViolations: [] });
++});
++
++test("honors exact exceptions that include a rationale", async (context) => {
++  const root = await createFixture(context);
++  await writeFixture(root, "src/feature/large.ts", "one\ntwo\nthree\nfour\nfive\n");
++
++  const result = await inspectSourceShape({
++    config: {
++      ...baseConfig,
++      fileExceptions: { "src/feature/large.ts": "Checked-in protocol table" },
++    },
++    repoRoot: root,
++  });
++
++  assert.deepEqual(result.fileViolations, []);
++});
++
++test("rejects exceptions without a rationale", async (context) => {
++  const root = await createFixture(context);
++
++  await assert.rejects(
++    inspectSourceShape({
++      config: { ...baseConfig, directoryExceptions: { "src/feature": "" } },
++      repoRoot: root,
++    }),
++    /directoryExceptions.*src\/feature.*rationale/,
++  );
++});
++
++async function createFixture(context) {
++  const root = await mkdtemp(join(tmpdir(), "vibe-source-shape-"));
++  context.after(() => rm(root, { force: true, recursive: true }));
++  return root;
++}
++
++async function writeFixture(root, path, source) {
++  const absolutePath = join(root, path);
++  await mkdir(join(absolutePath, ".."), { recursive: true });
++  await writeFile(absolutePath, source);
++}

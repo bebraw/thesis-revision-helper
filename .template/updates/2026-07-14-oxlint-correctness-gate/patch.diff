@@ -1,0 +1,84 @@
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 08b2afc..96d47c3 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -23,7 +23,8 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ - Node is pinned exactly through `package.json`, and npm is constrained to a compatible major there instead of an exact patch pin.
+ - The verification baseline is split into a fast gate and a browser gate so quick checks can return earlier without dropping full coverage.
+ - The repo-managed `pre-push` Git hook should run affected-file guardrails before code is pushed.
+-- Formatting, type checking, unit tests, and end-to-end tests are part of the baseline quality gate.
++- Formatting, Oxlint correctness checks, type checking, unit tests, and end-to-end tests are part of the baseline quality gate.
++- Keep Oxlint focused on its default correctness rules unless additional rule categories are adopted through an explicit, documented decision. Oxlint does not replace Prettier or TypeScript checking.
+ - Fallow codebase diagnostics are advisory readability checks for complexity, duplication, dependency hygiene, and cleanup evidence; they do not replace the baseline quality gate.
+ - Affected-file guardrails should scope checks to changed files when the underlying tool supports it and fall back to project-level checks only when needed.
+ - The fast quality gate should fail when Worker/view runtime files contain inline `<script>` tags, inline event-handler attributes, or `javascript:` URLs.
+diff --git a/package.json b/package.json
+index 1e6a1b5..344ab60 100644
+--- a/package.json
++++ b/package.json
+@@ -26,13 +26,14 @@
+     "format": "prettier --write .",
+     "format:check": "prettier --check .",
+     "lighthouse": "node ./scripts/run-lighthouse.mjs",
++    "lint": "oxlint --max-warnings 0",
+     "mutation": "stryker run",
+     "mutation:incremental": "stryker run --incremental",
+     "playwright:install": "playwright install chromium",
+     "prepare": "node ./scripts/setup-git-hooks.mjs",
+     "quality:affected": "node ./scripts/run-affected-guardrails.mjs",
+     "quality:gate": "npm run quality:gate:fast && npm run e2e && npm run mutation:incremental",
+-    "quality:gate:fast": "npm run format:check && npm run typecheck && npm run worker:client-guard && npm run security:audit && npm run test:coverage",
++    "quality:gate:fast": "npm run format:check && npm run lint && npm run typecheck && npm run worker:client-guard && npm run security:audit && npm run test:coverage",
+     "security:audit": "npm audit --omit=dev --audit-level high",
+     "test": "vitest run --passWithNoTests",
+     "test:affected": "node ./scripts/run-affected-tests.mjs",
+@@ -52,6 +53,7 @@
+     "chrome-launcher": "1.2.1",
+     "fallow": "3.3.0",
+     "lighthouse": "13.4.0",
++    "oxlint": "1.74.0",
+     "prettier": "3.9.5",
+     "tailwindcss": "4.3.2",
+     "typescript": "npm:@typescript/typescript6@6.0.2",
+diff --git a/scripts/run-affected-guardrails.mjs b/scripts/run-affected-guardrails.mjs
+index 881a007..dfda8f9 100644
+--- a/scripts/run-affected-guardrails.mjs
++++ b/scripts/run-affected-guardrails.mjs
+@@ -12,6 +12,7 @@ if (affectedFiles.length === 0) {
+ console.log(`Affected guardrails checking ${affectedFiles.length} file(s).`);
+ 
+ runPrettier(affectedFiles);
++runOxlint(affectedFiles);
+ runJavaScriptSyntaxCheckWhenNeeded(affectedFiles);
+ runTypecheckWhenNeeded(affectedFiles);
+ runWorkerClientGuard(affectedFiles);
+@@ -23,6 +24,18 @@ function runPrettier(files) {
+   run(repoRoot, "npx", ["prettier", "--check", "--ignore-unknown", ...files]);
+ }
+ 
++function runOxlint(files) {
++  const lintFiles = files.filter(affectsOxlint);
++
++  if (lintFiles.length === 0) {
++    console.log("Oxlint skipped: no affected JavaScript or TypeScript files.");
++    return;
++  }
++
++  console.log("Running Oxlint for affected files...");
++  run(repoRoot, "npx", ["oxlint", "--max-warnings", "0", ...lintFiles]);
++}
++
+ function runTypecheckWhenNeeded(files) {
+   if (!files.some(affectsTypecheck)) {
+     console.log("Typecheck skipped: no affected TypeScript or typed tooling files.");
+@@ -90,6 +103,10 @@ function affectsJavaScriptSyntax(file) {
+   return /\.(?:js|jsx|mjs|cjs)$/.test(file);
+ }
+ 
++function affectsOxlint(file) {
++  return /\.(?:js|jsx|mjs|cjs|ts|tsx|mts|cts)$/.test(file);
++}
++
+ function isWorkerClientGuardFile(file) {
+   return (
+     (file === "src/worker.ts" || file.startsWith("src/views/")) &&

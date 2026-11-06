@@ -1,0 +1,589 @@
+diff --git a/.codex/skills/start-project/SKILL.md b/.codex/skills/start-project/SKILL.md
+new file mode 100644
+index 0000000..f0a9cb4
+--- /dev/null
++++ b/.codex/skills/start-project/SKILL.md
+@@ -0,0 +1,117 @@
++---
++name: start-project
++description: Turn a fresh vibe-template clone into a focused project by defining its first closed product loop, auditing inherited template surfaces, and negotiating a safe pruning plan before any deletion. Use only when the user explicitly asks to start, initialize, personalize, or prune a project created from this template.
++---
++
++# Start Project
++
++Convert inherited starter context into deliberate project context without losing useful guardrails or the path to later template updates.
++
++## Boundaries
++
++- Run only on explicit invocation or an unambiguous request to initialize a clone.
++- Treat the planning pass as read-only. Do not edit, move, or delete files before the user approves the exact plan.
++- Never infer that inherited content is disposable solely because it came from the template.
++- Preserve working behavior until its replacement and verification path exist.
++- Preserve user-authored changes and unrelated worktree changes.
++- Do not add dependencies, CI, generated boilerplate, or a new persistent state file without separate approval.
++- Prefer existing durable surfaces: `README.md`, `AGENTS.md`, `ARCHITECTURE.md`, `specs/`, ADRs, and package metadata.
++
++## Load context
++
++Read `AGENTS.md`, `ARCHITECTURE.md`, `README.md`, relevant specs and ADRs, package metadata, the Git remotes, and the tracked file inventory. Consult `.asdlc/SKILL.md` for methodology choices.
++
++Read [references/pruning-catalog.md](references/pruning-catalog.md) when the repository still resembles `vibe-template` or contains `.capabilities/`, `.template/updates/`, starter application files, or inherited skill collections.
++
++## Phase 1: Produce the plan
++
++Make no repository changes during this phase.
++
++1. Establish the project identity from settled user context. Confirm only the decisions that cannot be discovered locally:
++   - project name and one-sentence purpose;
++   - one current closed product loop, from user intent through observable result;
++   - explicit near-term exclusions or deferred capabilities;
++   - retained runtime and deployment target.
++2. Inventory tracked files and their references. Inspect package scripts, dependencies, workflows, skill routing, intentional copies, specs, ADRs, and update records before classifying a path.
++3. Classify inherited surfaces as:
++   - **Keep:** required by the current loop, governance, verification, or update path.
++   - **Replace later:** starter behavior still protecting a working seam.
++   - **Remove:** distribution-only or unused material with no remaining references.
++   - **Decision required:** removal would change tooling, architecture, or project policy.
++4. Trace each proposed removal through references and coupled surfaces. Include canonical skills and compatibility copies, docs links, package scripts and dependencies, specs, ADRs, screenshots, workflows, and lock metadata where applicable.
++5. Preserve template updates using one approved strategy:
++   - keep the local update-pack history; or
++   - record the upstream source, starting Git revision, and applied update IDs in existing package metadata or durable docs before pruning old packs.
++6. Present exactly this review artifact:
++
++```markdown
++# Project Start Plan
++
++## Product focus
++
++- Purpose: ...
++- Current closed loop: ...
++- Deferred: ...
++
++## Keep
++
++- `path` — reason
++
++## Replace later
++
++- `path` — replacement condition
++
++## Remove after approval
++
++- `path` — reason; coupled edits
++
++## Decisions required
++
++- question — consequence
++
++## Template update path
++
++- source, baseline, record location, retained sync entrypoint
++
++## Documentation changes
++
++- exact targets and intended ownership
++
++## Verification
++
++- exact checks
++```
++
++7. Ask for explicit approval of the plan. Approval covers only the listed targets and coupled edits.
++
++If the product loop or a lasting architecture choice remains materially unclear, stop at `Decisions required` and route that question to brainstorming or wayfinding. Do not manufacture a vision document to hide uncertainty.
++
++## Phase 2: Apply the approved plan
++
++1. Recheck `git status` and the approved targets. Stop if new overlapping changes make the plan stale.
++2. Capture the project focus in the smallest existing durable surfaces:
++   - user-facing purpose and first loop in `README.md`;
++   - agent and project constraints in `AGENTS.md`;
++   - global dependency or ownership rules in `ARCHITECTURE.md`;
++   - feature behavior and boundaries in `specs/<feature-domain>/spec.md`;
++   - lasting architecture choices in an ADR.
++3. Record the approved template update source and baseline before removing local update history. Prefer an existing `vibeTemplate` package metadata object when `package.json` is an appropriate durable surface; otherwise use project documentation.
++4. Apply non-destructive edits first. Replace or remove references before removing their targets.
++5. Delete only the exact approved paths. Handle canonical skills, compatibility copies, provenance files, and documentation as one coupled change.
++6. Remove starter runtime behavior only after its replacement has tests or another deterministic verification and the relevant spec has changed.
++7. Run targeted checks while editing, then the repository-required readiness checks. Use local CI only when the approved change crosses the repository's workflow-sensitive boundaries.
++8. Compare the final diff with the approved plan. Report any approved item not applied and do not add adjacent cleanup silently.
++
++## Completion
++
++Finish only when:
++
++- the README states the actual project purpose and current closed loop;
++- deferred capabilities are explicit enough to prevent accidental scope expansion;
++- every removed path was approved and has no stale reference;
++- retained tooling has a current owner and purpose;
++- the template source and baseline remain discoverable if local update history was pruned;
++- specs, architecture rules, and ADRs match the resulting repository; and
++- the required checks pass.
++
++Offer removal of `start-project` itself only as the final, separately listed cleanup item. Keeping it is harmless; removing it can make a completed project less template-shaped.
+diff --git a/.codex/skills/start-project/agents/openai.yaml b/.codex/skills/start-project/agents/openai.yaml
+new file mode 100644
+index 0000000..c11c06b
+--- /dev/null
++++ b/.codex/skills/start-project/agents/openai.yaml
+@@ -0,0 +1,6 @@
++interface:
++  display_name: "Start Project"
++  short_description: "Turn the template into a focused project"
++  default_prompt: "Use $start-project to define the first closed product loop and propose a safe template-pruning plan."
++policy:
++  allow_implicit_invocation: false
+diff --git a/.codex/skills/start-project/references/pruning-catalog.md b/.codex/skills/start-project/references/pruning-catalog.md
+new file mode 100644
+index 0000000..d63de26
+--- /dev/null
++++ b/.codex/skills/start-project/references/pruning-catalog.md
+@@ -0,0 +1,61 @@
++# Pruning Catalog
++
++Use this catalog as an audit prompt, not as deletion authorization. Confirm every path and dependency in the current repository.
++
++## Distribution-only candidates
++
++- `.capabilities/`: partial-upgrade kits for exporting template practices. A normal downstream product can usually remove the directory together with capability-kit docs and specs once it no longer distributes those kits.
++- `.template/updates/<update-id>/`: historical migration packs. Prune only after recording the upstream template source, starting revision, and applied updates in existing package metadata or durable docs. Retain or replace a clear sync entrypoint.
++- Template-maintenance prose in `README.md`, `ARCHITECTURE.md`, specs, and ADRs: adapt it when the project stops acting as a distributable starter; do not leave stale links.
++
++## Replaceable starter candidates
++
++- `src/` Worker stub, starter routes, health endpoint, styles, and colocated tests.
++- `specs/stub-worker/spec.md` and starter-specific parts of other specs.
++- `docs/screenshots/home.png` and its README section.
++- Starter-specific Wrangler, Tailwind, browser, and Lighthouse setup.
++
++Keep these until the approved product loop supplies an equivalent working seam or explicitly abandons it. Removing a starter feature may also require changes to package scripts, dependencies, workflows, configs, tests, docs, and architecture rules.
++
++## Selectable governance and agent candidates
++
++- `.codex/skills/`: keep skills that match the retained stack and working style. Update `AGENTS.md`, the README catalog, specs, licenses, and any distribution copies with every removal.
++- `.github/skills/`: compatibility copies, not independent ownership. Compare them with canonical `.codex/skills/` sources and change both intentionally.
++- `.agents/skills/` and `skills-lock.json`: third-party skills and provenance metadata. Remove lock entries with removed vendored skills.
++- `.asdlc/`: local methodology reference. Keep by default while `AGENTS.md` uses it as the context anchor; removing it requires replacing that guidance deliberately.
++- `docs/adrs/implemented/`: active decision history, not disposable changelog. Retain by default. Consolidate only when every still-active constraint remains represented in current architecture and spec documents.
++- `specs/`: living contracts. Replace template-domain specs with project-domain specs as ownership changes; do not delete a contract while its behavior remains.
++
++## Coupled tooling candidates
++
++- `.github/workflows/`, `.githooks/`, scripts, configs, `package.json`, and the lockfile form a dependency graph. Remove a tool only after tracing its scripts, packages, workflow steps, docs, generated paths, and checks.
++- `.architecture-check.json` and source-shape tooling remain useful independent of the starter UI. Calibrate or remove them only through an explicit architecture decision.
++- Generated and machine-local paths such as `reports/`, `.generated/`, `.fallow/`, `.wrangler/`, `.cache/`, and `.npm/` are ignored workspace artifacts, not project-shape decisions. Do not include them in a tracked-file pruning plan.
++
++## Update record
++
++When `package.json` is an appropriate durable surface, extend its existing metadata rather than creating another state file:
++
++```json
++{
++  "vibeTemplate": {
++    "source": "https://github.com/bebraw/vibe-template",
++    "baseline": "<full-git-revision>",
++    "updates": []
++  }
++}
++```
++
++Use the actual source discovered from the clone or confirmed by the user. Do not guess a repository URL. If package metadata is unsuitable, put the same three fields in durable project documentation.
++
++## Removal safety checks
++
++For each target:
++
++1. Confirm it is tracked and inside the repository.
++2. Search for path, command, package, symbol, and skill-name references.
++3. Identify canonical and copied variants.
++4. Name the behavior or workflow that disappears.
++5. Name the replacement or explain why none is needed.
++6. List exact coupled edits and verification.
++7. Obtain approval before deletion.
+diff --git a/.template/updates/AGENT_SYNC.md b/.template/updates/AGENT_SYNC.md
+index 7526d70..64d71c7 100644
+--- a/.template/updates/AGENT_SYNC.md
++++ b/.template/updates/AGENT_SYNC.md
+@@ -13,8 +13,10 @@ into the current target repository without copying unrelated starter files.
+ - **Template repo:** a local checkout or remote source for `vibe-template`.
+ - **Update root:** `vibe-template/.template/updates/`.
+
+-If the template repo path is not obvious, ask for it. If network access or clone
+-access is needed, request approval before fetching anything.
++If the template repo path is not obvious, inspect a `vibeTemplate` object in
++package metadata or durable project docs for `source` and `baseline`. Ask only
++when neither the local checkout nor a recorded source resolves it. If network
++access or clone access is needed, request approval before fetching anything.
+
+ ## Workflow
+
+@@ -25,6 +27,7 @@ access is needed, request approval before fetching anything.
+    - existing `.capabilities/`
+    - existing `.template/updates/`
+    - docs or package metadata recording applied template updates
++   - recorded template source and baseline revision
+ 2. Read `vibe-template/.template/updates/README.md`.
+ 3. List update packs under `vibe-template/.template/updates/*/update.json`.
+ 4. Determine which packs are already applied:
+@@ -49,12 +52,15 @@ access is needed, request approval before fetching anything.
+    ```json
+    {
+      "vibeTemplate": {
++       "source": "https://github.com/example/vibe-template",
++       "baseline": "<full-git-revision>",
+        "updates": ["2026-06-14-agent-ci-warm-cache"]
+      }
+    }
+    ```
+
+-   Use a docs record instead when package metadata is not appropriate.
++   Use the actual discovered source. Use a docs record instead when package
++   metadata is not appropriate.
+
+ 8. Run the checks listed by the applied update packs, adjusted to the target
+    repo's package manager and script names.
+diff --git a/AGENTS.md b/AGENTS.md
+index b410a74..d7cda62 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -82,6 +82,12 @@
+ - Use the project-local [`brainstorming`](./.codex/skills/brainstorming/SKILL.md) skill when the user is exploring options, shaping a feature, or comparing approaches before implementation.
+ - Treat the skill as guidance for producing concrete, lightweight options that can turn cleanly into specs, ADRs, or code.
+
++## Project Start
++
++- Use the project-local [`start-project`](./.codex/skills/start-project/SKILL.md) skill only when the user explicitly asks to initialize, personalize, or prune a project cloned from this template.
++- Require a read-only Project Start Plan that defines the current closed product loop and lists exact keep, replace-later, removal, decision, documentation, update-path, and verification items.
++- Do not edit or delete files until the user approves that plan; preserve the template source and baseline before pruning local update history.
++
+ ## Wayfinding
+
+ - Use the project-local [`wayfinder`](./.codex/skills/wayfinder/SKILL.md) skill only when the user explicitly asks to map a large, uncertain initiative that is not yet clear enough to specify or plan responsibly.
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index a2780f7..cc435a2 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -7,6 +7,7 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ ## Global Rules
+
+ - Keep the template lightweight, reusable, easy to clone, and easy to prune.
++- Initialize a downstream clone through an approval-gated project-start pass: define one current closed product loop, classify inherited surfaces, preserve working seams, and record update provenance before pruning.
+ - Treat repo documentation as living context that should evolve with the code.
+ - Treat architectural decisions as explicit records, not implicit tribal knowledge.
+ - Treat specs and ADRs as the durable source of truth for expected behavior and architectural intent. Code, including AI-generated code, is only acceptable when it matches those documents or updates them intentionally in the same change set.
+@@ -62,6 +63,7 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ - Keep update packs as reviewable plain files with metadata, a migration guide, and a focused patch.
+ - Use update packs for later changes to projects that already use this template or one of its capability kits.
+ - Do not treat update packs as source snapshots; preserve downstream project conventions and use the migration guide when the patch does not apply cleanly.
++- When a downstream project prunes local update-pack history, record the template source, baseline Git revision, and applied update IDs in existing package metadata or durable documentation, and retain a discoverable sync entrypoint.
+
+ ## Spec Conventions
+
+diff --git a/README.md b/README.md
+index 3612120..5090284 100644
+--- a/README.md
++++ b/README.md
+@@ -22,10 +22,11 @@ Local development in this repo targets macOS. Other platforms may need script an
+
+ The repository includes focused instructions under `.codex/skills/` that help coding agents follow its conventions. You can describe the job normally and let the agent select a matching skill, or require one by name—for example, `Use $security to review this authentication change`.
+
+-`$wayfinder` and `$to-spec` are intentionally explicit: the agent uses them only when you name them. This keeps exploratory maps and durable specifications from appearing as accidental side effects.
++`$start-project`, `$wayfinder`, and `$to-spec` are intentionally explicit: the agent uses them only when you name them. This keeps repository pruning, exploratory maps, and durable specifications from appearing as accidental side effects.
+
+ ### From Idea to Implementation
+
++- [`$start-project`](.codex/skills/start-project/SKILL.md) — define a fresh clone's first closed product loop, audit inherited template material, and present an approval-gated pruning plan before changing files. Explicit invocation required.
+ - [`$brainstorming`](.codex/skills/brainstorming/SKILL.md) — compare lightweight approaches and clarify trade-offs before committing to a design.
+ - [`$wayfinder`](.codex/skills/wayfinder/SKILL.md) — map a large, uncertain, multi-session initiative in `docs/wayfinding/` when it is not ready for a responsible spec. Explicit invocation required.
+ - [`$to-spec`](.codex/skills/to-spec/SKILL.md) — turn settled discussion or wayfinding results into the repository's living `specs/<feature-domain>/spec.md`. Explicit invocation required.
+diff --git a/docs/adrs/README.md b/docs/adrs/README.md
+index 07539fc..a132e7f 100644
+--- a/docs/adrs/README.md
++++ b/docs/adrs/README.md
+@@ -83,6 +83,7 @@ No accepted-only ADRs are currently pending implementation.
+ | [ADR-048](./implemented/ADR-048-adopt-repository-local-wayfinding.md)                  | Implemented | Adapt Wayfinder to repository-local maps and the template's durable documentation model.          |
+ | [ADR-049](./implemented/ADR-049-adopt-local-spec-and-tdd-skills.md)                    | Implemented | Add repository-local spec synthesis and focused red-green implementation skills.                  |
+ | [ADR-050](./implemented/ADR-050-add-early-architecture-feedback.md)                    | Implemented | Add ownership contracts, structural smoke alarms, and capability architecture review.             |
++| [ADR-051](./implemented/ADR-051-add-approval-gated-project-start.md)                   | Implemented | Add a read-only project-start plan before approved pruning of a fresh clone.                      |
+
+ ## Creating A New ADR
+
+diff --git a/docs/adrs/implemented/ADR-051-add-approval-gated-project-start.md b/docs/adrs/implemented/ADR-051-add-approval-gated-project-start.md
+new file mode 100644
+index 0000000..14df5b2
+--- /dev/null
++++ b/docs/adrs/implemented/ADR-051-add-approval-gated-project-start.md
+@@ -0,0 +1,63 @@
++# ADR-051: Add Approval-Gated Project Start
++
++**Status:** Implemented
++
++**Date:** 2026-08-03
++
++## Context
++
++`vibe-template` is intended to be easy to clone and prune, but a fresh clone does not distinguish distribution-only material from active governance, coupled tooling, or starter behavior that still protects a working seam. Ad hoc cleanup can delete useful architecture history, leave broken references, or remove the local update packs without preserving an upstream sync path.
++
++The Kirjolab case study also showed that product requirements can outrun architecture early. Project initialization should therefore define one current closed product loop and explicit deferred capabilities before inherited structure or new feature areas expand.
++
++## Decision
++
++Add an explicitly invoked `start-project` skill. Its first phase is read-only and produces a Project Start Plan covering product focus, exact keep and removal targets, replace-later seams, unresolved decisions, coupled documentation changes, template-update provenance, and verification. Repository edits and deletions begin only after the user approves that exact plan.
++
++Treat distribution kits, historical update packs, starter behavior, agent skills, methodology references, architecture history, and coupled tooling as separate audit classes rather than one cleanup set. Keep implemented ADRs and living specs by default. Remove starter behavior only after its replacement or abandonment is approved and verifiable.
++
++When a downstream project prunes local update-pack history, record the actual template source, baseline Git revision, and applied update IDs in existing package metadata or durable documentation, and retain a discoverable sync entrypoint.
++
++## Trigger
++
++After adding early architecture feedback, the user approved the recommended next step: an explicit workflow for establishing the first product loop and safely pruning a fresh clone without losing its template update path.
++
++## Consequences
++
++**Positive:**
++
++- Fresh projects begin with a visible product horizon instead of an open-ended feature list.
++- Destructive pruning becomes reviewable and scoped to exact targets.
++- Working starter seams remain available until replacements are real.
++- Downstream projects can shed template distribution history while retaining update provenance.
++- The workflow adds no runtime dependency or external tracker.
++
++**Negative:**
++
++- Initialization requires a planning and approval round before cleanup.
++- The agent must trace references and coupled tooling rather than applying a fixed deletion list.
++- Downstream package metadata or docs retain a small amount of template provenance.
++
++**Neutral:**
++
++- Start Project does not discover a product strategy or implement the first loop.
++- Projects may keep all inherited material when that is the deliberate choice.
++- The skill can remove itself last after the project no longer needs initialization guidance.
++
++## Alternatives Considered
++
++### Ship A Fixed Cleanup Script
++
++This would be fast for an unchanged clone but unsafe as soon as the user edits starter code, retains a capability kit, or chooses different tooling. The destructive portion needs repository-specific judgment and approval.
++
++### Keep The Full Template In Every Project
++
++This preserves every update and governance surface but leaves distribution infrastructure and unused skills competing with product context indefinitely.
++
++### Document A Manual Checklist Only
++
++A checklist improves discoverability but does not reliably inventory references, coupled copies, and worktree changes at execution time.
++
++### Create A Dedicated Project Manifest
++
++A manifest could make initialization deterministic, but it adds a new state authority. Existing package metadata and durable documentation can record project focus and update provenance without another persistent format.
+diff --git a/specs/README.md b/specs/README.md
+index a7194eb..addff0a 100644
+--- a/specs/README.md
++++ b/specs/README.md
+@@ -23,6 +23,7 @@ Skip a spec for small fixes, trivial copy changes, or narrow tactical edits.
+ - Feature specs belong in `specs/{feature-domain}/spec.md`.
+ - Capability-kit contracts belong in `specs/capability-kits/spec.md`.
+ - Agent-skill baseline contracts belong in `specs/agent-skills/spec.md`.
++- Project initialization and pruning contracts belong in `specs/project-start/spec.md`.
+ - Template update-pack contracts belong in `specs/template-updates/spec.md`.
+
+ ## Starting Point
+diff --git a/specs/agent-skills/spec.md b/specs/agent-skills/spec.md
+index 9d52e50..6a8066e 100644
+--- a/specs/agent-skills/spec.md
++++ b/specs/agent-skills/spec.md
+@@ -25,6 +25,8 @@ Users also need a concise README catalog that makes the available skills discove
+ - **Baseline Cloudflare CLI skill:** `wrangler`
+ - **Specialized Cloudflare skills:** added on demand when their product is adopted
+ - **Repository-local wayfinding skill:** `.codex/skills/wayfinder/`
++- **Explicit project-start skill:** `.codex/skills/start-project/`
++- **Project-start behavior owner:** `specs/project-start/spec.md`
+ - **Wayfinding map:** `docs/wayfinding/<effort>.md`
+ - **Wayfinding authority:** working context only; lasting decisions graduate into architecture docs, ADRs, and specs
+ - **Repository-local specification skill:** `.codex/skills/to-spec/`
+@@ -48,6 +50,7 @@ Users also need a concise README catalog that makes the available skills discove
+ - Do not force TDD onto changes without meaningful observable behavior or a stable test seam.
+ - Do not write tautological or implementation-coupled tests merely to satisfy a test-first sequence.
+ - Do not make users inspect the skill directory to discover names, purposes, or invocation behavior.
++- Do not let project initialization edit or prune a clone before the user approves an exact plan.
+ - Do not duplicate complete skill workflows in the README; link to each `SKILL.md` as the source of truth.
+ - Do not treat structural metrics as a substitute for reviewing capability ownership and dependency direction.
+
+@@ -68,6 +71,7 @@ Users also need a concise README catalog that makes the available skills discove
+ - [ ] The README groups every project-local skill by job and gives each a concise, user-facing purpose.
+ - [ ] The README explains natural matching, named `$skill` invocation, and which workflows require explicit invocation.
+ - [ ] The template includes a model-invoked `architecture-review` skill that combines durable capability contracts, deterministic source-shape checks, and advisory Fallow evidence.
++- [ ] The template includes an explicitly invoked `start-project` skill whose behavior is owned by `specs/project-start/spec.md`.
+
+ ### Regression Guardrails
+
+@@ -89,6 +93,7 @@ Users also need a concise README catalog that makes the available skills discove
+ - **Wayfinder structure:** confirm the skill has valid `name` and `description` frontmatter plus valid `agents/openai.yaml`; use the skill-creator validator when its Python dependencies are available
+ - **Specification and TDD structure:** apply the same metadata validation to `.codex/skills/to-spec/` and `.codex/skills/tdd/`
+ - **Architecture review structure:** validate `.codex/skills/architecture-review/` metadata and confirm its workflow routes lasting outcomes into architecture docs, ADRs, or specs
++- **Project start structure:** validate `.codex/skills/start-project/` metadata and confirm its workflow is read-only until the exact pruning plan is approved
+ - **README catalog:** confirm every `.codex/skills/*/SKILL.md` has a corresponding README link and that explicit-only workflows are identified
+
+ ### Scenarios
+@@ -159,6 +164,12 @@ Users also need a concise README catalog that makes the available skills discove
+ - When: they read the README skill catalog
+ - Then: they can find the matching skill, understand its purpose, and either describe the job naturally or invoke it by `$skill-name`
+
++**Scenario: User starts from a fresh clone**
++
++- Given: the repository still contains inherited starter and distribution material
++- When: the user explicitly invokes Start Project
++- Then: the agent defines the first closed product loop and presents an exact, read-only pruning plan before editing or deleting files
++
+ **Scenario: Capability expansion meets structural pressure**
+
+ - Given: a capability is growing and source-shape or Fallow evidence indicates concentrated responsibility
+diff --git a/specs/project-start/spec.md b/specs/project-start/spec.md
+new file mode 100644
+index 0000000..e5710ba
+--- /dev/null
++++ b/specs/project-start/spec.md
+@@ -0,0 +1,97 @@
++# Feature: Project Start
++
++## Blueprint
++
++### Context
++
++A fresh clone contains useful quality, architecture, documentation, and agent guardrails, but it also contains distribution kits, historical migrations, a replaceable starter application, and workflows that may not fit the new product. Removing these by intuition can break the working baseline or erase the route to later template maintenance. Keeping everything indefinitely makes product ownership harder to see.
++
++The project needs a lightweight one-time workflow that establishes the first closed product loop, audits inherited material, and lets the user approve exact pruning before the repository changes.
++
++### Architecture
++
++- **Capability source root:** `.codex/skills/start-project/`
++- **Composition roots:** `AGENTS.md` for explicit routing and `README.md` for user discovery
++- **Entry point:** explicit `$start-project` invocation or an unambiguous request to initialize, personalize, or prune a fresh clone
++- **State authority:** existing durable repository documents and package metadata; the skill creates no private state store
++- **Public contracts:** the read-only Project Start Plan, the approved target list, and the resulting project docs/specs/ADRs
++- **Dependency direction:** the skill reads template and project surfaces; those surfaces do not depend on the skill after initialization
++- **Update provenance:** template source, baseline Git revision, and applied update IDs in existing package metadata or durable docs when local update history is pruned
++
++### Out of Scope
++
++- Discovering a materially uncertain product direction; use brainstorming or wayfinding first.
++- Implementing the first product loop as part of the planning pass.
++- Automatically choosing a framework, dependency, CI service, or deployment target.
++- Cleaning ignored machine-local artifacts as if they were repository architecture.
++
++### Anti-Patterns
++
++- Do not edit or delete files during the initial audit.
++- Do not label all inherited material as disposable template residue.
++- Do not delete working starter behavior before its replacement or explicit abandonment is approved and verifiable.
++- Do not remove a skill, tool, or workflow without tracing its routing, copies, packages, scripts, docs, specs, and checks.
++- Do not prune historical update packs without recording an upstream source and baseline.
++- Do not create a second project-state file when README, architecture docs, specs, ADRs, or package metadata already own the information.
++
++## Contract
++
++### Definition of Done
++
++- [ ] The template includes an explicitly invoked `start-project` skill and user-facing catalog entry.
++- [ ] The planning phase is read-only and defines purpose, one current closed loop, and deferred capabilities.
++- [ ] The plan classifies exact paths as keep, replace later, remove after approval, or decision required.
++- [ ] Proposed removals list coupled edits, update-path impact, and verification.
++- [ ] No edit or deletion occurs until the user approves the exact plan.
++- [ ] Approved execution updates README, agent rules, architecture, specs, and ADRs where their owned contracts change.
++- [ ] Pruning local update history preserves template source, baseline, applied updates, and a discoverable sync path.
++- [ ] Final verification matches the repository's retained tooling and workflow-sensitive boundaries.
++
++### Regression Guardrails
++
++- Start Project must remain explicitly invoked.
++- Plan approval must be scoped to listed targets and coupled edits, not treated as blanket cleanup authority.
++- New overlapping worktree changes must invalidate or narrow a previously approved plan before execution continues.
++- Implemented ADRs and living specs remain retained by default; consolidation requires proof that active constraints and behavior remain represented.
++- Canonical skills and compatibility copies must be changed together intentionally.
++- The workflow may offer to remove itself only as the final, separately listed cleanup item.
++
++### Verification
++
++- **Skill metadata:** run the skill-creator validator against `.codex/skills/start-project/`
++- **Documentation:** `npm run format:check`
++- **Catalog coverage:** confirm README and `AGENTS.md` identify Start Project as explicit-only
++- **Update path:** confirm `.template/updates/AGENT_SYNC.md` can discover `source`, `baseline`, and `updates` from existing metadata
++- **Forward test:** ask a fresh agent to use the skill on a representative clone and confirm it returns a plan without changing the worktree
++
++### Scenarios
++
++**Scenario: Fresh clone is still generic**
++
++- Given: the repository contains the Worker stub, template skills, capability kits, and historical update packs
++- When: the user invokes Start Project with a product idea
++- Then: the agent presents the first closed loop and exact keep, replace, remove, and decision categories without editing files
++
++**Scenario: User approves only part of the plan**
++
++- Given: the Project Start Plan proposes several removals
++- When: the user approves only the distribution-kit removal
++- Then: the agent applies that subset and its listed coupled documentation changes without performing adjacent cleanup
++
++**Scenario: Starter behavior has no replacement yet**
++
++- Given: the current Worker stub is still the only verified runtime path
++- When: the audit evaluates `src/`
++- Then: it classifies the starter as replace later instead of deleting it
++
++**Scenario: Historical update packs are pruned**
++
++- Given: a downstream project no longer wants local migration history
++- When: the user approves removing old packs
++- Then: the agent first records the actual template source, baseline revision, and applied updates in package metadata or durable docs and retains a discoverable sync route
++
++**Scenario: Product direction is unresolved**
++
++- Given: alternative first loops would create materially different project architecture
++- When: Start Project reaches the decision
++- Then: it stops in the Decisions required section and routes the user to brainstorming or wayfinding instead of inventing a project structure
+diff --git a/specs/template-updates/spec.md b/specs/template-updates/spec.md
+index a67f120..f766984 100644
+--- a/specs/template-updates/spec.md
++++ b/specs/template-updates/spec.md
+@@ -20,7 +20,7 @@ copying unrelated starter structure.
+ - **Agent sync entrypoint:** `.template/updates/AGENT_SYNC.md`
+ - **Patch role:** focused first-attempt migration patch
+ - **Guide role:** manual fallback for diverged target projects
+-- **Applied update record:** target project docs or package metadata
++- **Applied update record:** target project docs or package metadata containing the template source, baseline Git revision, and applied update IDs when local pack history is pruned
+ - **Current backfilled updates:**
+   - `2026-06-09-node-24-npm-baseline`
+   - `2026-06-10-capability-kits`
+@@ -47,6 +47,7 @@ copying unrelated starter structure.
+   - `2026-08-03-repository-local-spec-tdd`
+   - `2026-08-03-readme-skill-catalog`
+   - `2026-08-03-architecture-feedback`
++  - `2026-08-03-project-start-workflow`
+
+ ### Anti-Patterns
+
+@@ -60,6 +61,7 @@ copying unrelated starter structure.
+   docs structure, workflow names, or source layout.
+ - Do not require a custom CLI before update packs are useful.
+ - Do not make agents infer the cross-repo sync workflow from scattered docs.
++- Do not prune local update-pack history before preserving a discoverable upstream source and baseline.
+
+ ## Contract
+
+@@ -72,6 +74,7 @@ copying unrelated starter structure.
+ - [ ] Patch files are focused on reusable migration steps rather than whole
+       template snapshots.
+ - [ ] Durable docs mention update packs as the template-maintenance sync path.
++- [ ] Downstream projects can prune historical packs without losing their upstream source, starting revision, or applied-update record.
+ - [ ] The spec is updated in the same change set.
+
+ ### Regression Guardrails
+@@ -84,6 +87,7 @@ copying unrelated starter structure.
+ - The agent sync entrypoint must be explicit enough that a target-repo agent can
+   act on "look at vibe-template for latest updates" without additional prompt
+   engineering.
++- A pruned downstream project must be able to discover its template source and baseline from existing package metadata or durable docs.
+ - Backfilled packs should cover reusable historical changes, not every commit.
+ - New reusable template maintenance changes should add or update an update pack
+   in the same change set.

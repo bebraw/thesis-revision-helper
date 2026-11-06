@@ -1,0 +1,238 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index f5da546..470bd34 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -62,7 +62,15 @@ jobs:
+     steps:
+       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+ 
++      - name: Classify expensive gate inputs
++        id: expensive
++        env:
++          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
++          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
++        run: node ./scripts/classify-expensive-ci.mjs "$BASE_SHA" "$HEAD_SHA" >> "$GITHUB_OUTPUT"
++
+       - name: Restore npm cache
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+         with:
+           path: ~/.npm
+@@ -71,16 +79,19 @@ jobs:
+             npm-${{ runner.os }}-
+ 
+       - name: Set up Node.js
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+         with:
+           node-version-file: package.json
+           package-manager-cache: false
+ 
+       - name: Install dependencies
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         shell: bash
+         run: npm ci
+ 
+       - name: Run browser quality gate
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         shell: bash
+         run: npm run e2e
+ 
+@@ -90,7 +101,15 @@ jobs:
+     steps:
+       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+ 
++      - name: Classify expensive gate inputs
++        id: expensive
++        env:
++          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
++          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
++        run: node ./scripts/classify-expensive-ci.mjs "$BASE_SHA" "$HEAD_SHA" >> "$GITHUB_OUTPUT"
++
+       - name: Restore npm cache
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+         with:
+           path: ~/.npm
+@@ -99,15 +118,18 @@ jobs:
+             npm-${{ runner.os }}-
+ 
+       - name: Set up Node.js
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+         with:
+           node-version-file: package.json
+           package-manager-cache: false
+ 
+       - name: Install dependencies
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         shell: bash
+         run: npm ci
+ 
+       - name: Run mutation quality gate
++        if: ${{ steps.expensive.outputs.run_expensive == 'true' }}
+         shell: bash
+         run: npm run mutation
+diff --git a/ARCHITECTURE.md b/ARCHITECTURE.md
+index 754d79b..4a19bad 100644
+--- a/ARCHITECTURE.md
++++ b/ARCHITECTURE.md
+@@ -28,6 +28,7 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
+ - Keep Oxlint focused on its default correctness rules unless additional rule categories are adopted through an explicit, documented decision. Oxlint does not replace Prettier or TypeScript checking.
+ - Fallow codebase diagnostics are advisory readability checks for complexity, duplication, dependency hygiene, and cleanup evidence; they do not replace the baseline quality gate.
+ - Affected-file guardrails should scope checks to changed files when the underlying tool supports it and fall back to project-level checks only when needed.
++- Remote browser and mutation jobs should skip dependency installation and execution when every changed file is in a documented non-runtime area. Unknown paths and unavailable change ranges must run the expensive gates.
+ - The fast quality gate should fail when Worker/view runtime files contain inline `<script>` tags, inline event-handler attributes, or `javascript:` URLs.
+ - Unit coverage for `src/` code should stay high enough that the coverage gate remains green.
+ - Local CI should validate the same baseline checks before non-documentation changes are proposed or merged.
+diff --git a/package.json b/package.json
+index 344ab60..35e1995 100644
+--- a/package.json
++++ b/package.json
+@@ -33,11 +33,12 @@
+     "prepare": "node ./scripts/setup-git-hooks.mjs",
+     "quality:affected": "node ./scripts/run-affected-guardrails.mjs",
+     "quality:gate": "npm run quality:gate:fast && npm run e2e && npm run mutation:incremental",
+-    "quality:gate:fast": "npm run format:check && npm run lint && npm run typecheck && npm run worker:client-guard && npm run security:audit && npm run test:coverage",
++    "quality:gate:fast": "npm run format:check && npm run lint && npm run typecheck && npm run worker:client-guard && npm run test:tooling && npm run security:audit && npm run test:coverage",
+     "security:audit": "npm audit --omit=dev --audit-level high",
+     "test": "vitest run --passWithNoTests",
+     "test:affected": "node ./scripts/run-affected-tests.mjs",
+     "test:coverage": "node ./scripts/run-coverage-gate.mjs",
++    "test:tooling": "node --test scripts/classify-expensive-ci.test.mjs",
+     "typecheck": "node ./node_modules/typescript-7/bin/tsc --noEmit",
+     "worker:client-guard": "node ./scripts/assert-no-worker-client-scripts.mjs"
+   },
+diff --git a/scripts/classify-expensive-ci.mjs b/scripts/classify-expensive-ci.mjs
+new file mode 100644
+index 0000000..89bbe45
+--- /dev/null
++++ b/scripts/classify-expensive-ci.mjs
+@@ -0,0 +1,88 @@
++import { spawnSync } from "node:child_process";
++import { resolve } from "node:path";
++import { pathToFileURL } from "node:url";
++
++const zeroSha = "0000000000000000000000000000000000000000";
++const nonRuntimeFiles = new Set([
++  ".gitignore",
++  ".prettierignore",
++  ".prettierrc.json",
++  "AGENTS.md",
++  "ARCHITECTURE.md",
++  "LICENSE",
++  "README.md",
++]);
++const nonRuntimePrefixes = [".agents/", ".asdlc/", ".codex/", ".github/skills/", ".template/", "docs/", "specs/"];
++
++export function shouldRunExpensiveCi(files) {
++  return files.length === 0 || files.some((file) => !isNonRuntimeFile(file));
++}
++
++export function isNonRuntimeFile(file) {
++  return (
++    nonRuntimeFiles.has(file) ||
++    (!file.includes("/") && file.endsWith(".md")) ||
++    nonRuntimePrefixes.some((prefix) => file.startsWith(prefix))
++  );
++}
++
++export function classifyCommitRange(baseSha, headSha, cwd = process.cwd()) {
++  if (!isCommitSha(baseSha) || !isCommitSha(headSha) || baseSha === zeroSha) {
++    return true;
++  }
++
++  ensureCommit(baseSha, cwd);
++  ensureCommit(headSha, cwd);
++
++  const result = runGit(["diff", "--name-only", "--diff-filter=ACMRD", "-z", baseSha, headSha], cwd);
++  const files = result.stdout.split("\0").filter(Boolean);
++
++  return shouldRunExpensiveCi(files);
++}
++
++function ensureCommit(sha, cwd) {
++  const existing = runGit(["cat-file", "-e", `${sha}^{commit}`], cwd, true);
++
++  if (existing.status === 0) {
++    return;
++  }
++
++  runGit(["fetch", "--no-tags", "--depth=1", "origin", sha], cwd);
++}
++
++function runGit(args, cwd, allowFailure = false) {
++  const result = spawnSync("git", args, {
++    cwd,
++    encoding: "utf8",
++    stdio: ["ignore", "pipe", "pipe"],
++  });
++
++  if (result.error) {
++    throw result.error;
++  }
++
++  if (!allowFailure && result.status !== 0) {
++    throw new Error(result.stderr.trim() || `git ${args[0]} failed`);
++  }
++
++  return result;
++}
++
++function isCommitSha(value) {
++  return /^[0-9a-f]{40}$/i.test(value ?? "");
++}
++
++function isDirectRun() {
++  return process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
++}
++
++if (isDirectRun()) {
++  const [baseSha, headSha] = process.argv.slice(2);
++
++  try {
++    console.log(`run_expensive=${classifyCommitRange(baseSha, headSha)}`);
++  } catch (error) {
++    console.error(`Expensive CI classification fell back to the safe path: ${error.message}`);
++    console.log("run_expensive=true");
++  }
++}
+diff --git a/scripts/classify-expensive-ci.test.mjs b/scripts/classify-expensive-ci.test.mjs
+new file mode 100644
+index 0000000..b7e6309
+--- /dev/null
++++ b/scripts/classify-expensive-ci.test.mjs
+@@ -0,0 +1,33 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++
++import { isNonRuntimeFile, shouldRunExpensiveCi } from "./classify-expensive-ci.mjs";
++
++test("skips expensive CI for known non-runtime files", () => {
++  const files = [
++    "README.md",
++    ".prettierignore",
++    "docs/development.md",
++    "specs/quality-gate/spec.md",
++    ".codex/skills/agent-ci/SKILL.md",
++    ".github/skills/example/SKILL.md",
++    ".template/updates/example/README.md",
++  ];
++
++  assert.equal(shouldRunExpensiveCi(files), false);
++});
++
++test("runs expensive CI when any file may affect runtime verification", () => {
++  assert.equal(shouldRunExpensiveCi(["docs/development.md", "src/worker.ts"]), true);
++  assert.equal(shouldRunExpensiveCi(["package.json"]), true);
++  assert.equal(shouldRunExpensiveCi([".github/workflows/ci.yml"]), true);
++});
++
++test("runs expensive CI when no reliable change set is available", () => {
++  assert.equal(shouldRunExpensiveCi([]), true);
++});
++
++test("treats unknown paths conservatively", () => {
++  assert.equal(isNonRuntimeFile("notes/idea.md"), false);
++  assert.equal(isNonRuntimeFile("wrangler.jsonc"), false);
++});

@@ -1,0 +1,9 @@
+{
+  "id": "2026-08-03-architecture-feedback",
+  "title": "Add early architecture feedback",
+  "status": "implemented",
+  "risk": "medium",
+  "adrs": ["docs/adrs/implemented/ADR-050-add-early-architecture-feedback.md"],
+  "touches": [".codex/skills/", "AGENTS.md", "ARCHITECTURE.md", "README.md", "package.json", "scripts/", "specs/"],
+  "checks": ["npm run quality:gate", "npm run ci:local"]
+}

@@ -1,0 +1,24 @@
+{
+  "id": "2026-08-17-dependency-toolchain-refresh",
+  "title": "Refresh the dependency toolchain and adopt Local CI",
+  "status": "implemented",
+  "risk": "medium",
+  "supersedes": ["2026-07-10-playwright-1-61-ci-image", "2026-07-14-agent-ci-cache-isolation"],
+  "adrs": [
+    "docs/adrs/implemented/ADR-009-split-fast-and-browser-verification.md",
+    "docs/adrs/implemented/ADR-053-adopt-local-ci-canonical-interface.md"
+  ],
+  "touches": [
+    "package.json",
+    "package-lock.json",
+    ".nvmrc",
+    ".github/workflows/ci.yml",
+    ".env.local-ci.example",
+    ".codex/skills/local-ci/",
+    ".capabilities/",
+    "scripts/template-update-patches.test.mjs",
+    "docs/",
+    "specs/"
+  ],
+  "checks": ["npm run quality:gate", "npm run mutation", "npm run diagnostics:codebase", "npm run ci:local"]
+}

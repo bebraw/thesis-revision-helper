@@ -1,0 +1,51 @@
+{
+  "name": "room-state",
+  "description": "Add one SQLite-backed Durable Object per room with predefined, replaceable anonymous voting.",
+  "dependencies": {
+    "dev": {
+      "@cloudflare/vitest-plugin": "1.3.5",
+      "@vitest/coverage-istanbul": "4.1.11",
+      "vitest": "4.1.11"
+    },
+    "removeDev": ["@cloudflare/vitest-pool-workers", "@vitest/coverage-v8"]
+  },
+  "scripts": {
+    "types": "wrangler types",
+    "types:check": "wrangler types --check"
+  },
+  "files": [
+    { "source": "files/src/room-state.ts", "target": "src/room-state.ts", "mode": "copy-or-merge" },
+    { "source": "files/src/room-http.ts", "target": "src/room-http.ts", "mode": "copy-or-merge" },
+    { "source": "files/src/room-view.ts", "target": "src/room-view.ts", "mode": "copy-or-merge" },
+    { "source": "files/src/room-state.test.ts", "target": "src/room-state.test.ts", "mode": "copy-or-merge" },
+    { "source": "files/src/room-http.test.ts", "target": "src/room-http.test.ts", "mode": "copy-or-merge" },
+    { "source": "files/vitest.config.ts", "target": "vitest.config.ts", "mode": "copy-or-merge" }
+  ],
+  "generatedFiles": ["worker-configuration.d.ts"],
+  "optionalSteps": [
+    {
+      "name": "progressive-interaction",
+      "when": "The target wants background form submission and fragment replacement.",
+      "prompt": "Do you want to apply the separate progressive-interaction kit while preserving the conventional GET/POST path?",
+      "kit": "../progressive-interaction"
+    }
+  ],
+  "docs": [
+    "Document the room id as the Durable Object coordination key and SQLite as the vote authority.",
+    "Document the authorization boundary protecting initialization, reset, seed, and room-status composition.",
+    "Document accepted vote origins, voter-cookie lifetime, and the anonymous-cookie ballot-stuffing limitation.",
+    "Document the redacted room.reset event and the application's log destination.",
+    "Document which locked room revision is handed to model or presentation workflows.",
+    "Keep event-specific choices and seed data outside the kit."
+  ],
+  "verify": ["npm run types:check", "npm test", "npm run typecheck", "npm run quality:gate"],
+  "notes": [
+    "Initialization validates and seeds only a room with no choices; retries preserve choices, votes, status, and revision, ignoring unused input. The check and seed must not yield between storage operations.",
+    "Seed replaces the predefined choice set, clears votes, opens the room by default, and advances its revision; reset clears votes but preserves choices and status.",
+    "The first-party voter cookie is opaque and the Durable Object stores only a per-room SHA-256 key.",
+    "The default HTTP route requires a same-origin vote Origin, accepts bounded application/x-www-form-urlencoded bodies, and redirects with 303 after POST.",
+    "New voter cookies default to an eight-hour lifetime configurable at the HTTP composition boundary.",
+    "Reset logs include only mutation outcome, removed count, and resulting revision.",
+    "Worker-runtime coverage uses Istanbul because native V8 coverage is unsupported by the Cloudflare Vitest runtime."
+  ]
+}

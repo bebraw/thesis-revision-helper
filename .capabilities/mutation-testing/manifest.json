@@ -1,0 +1,38 @@
+{
+  "name": "mutation-testing",
+  "description": "Add Stryker mutation testing for TypeScript projects that use Vitest.",
+  "requires": ["typescript-setup", "quality-gate"],
+  "dependencies": {
+    "dev": {
+      "@stryker-mutator/core": "10.0.0",
+      "@stryker-mutator/typescript-checker": "10.0.0",
+      "@stryker-mutator/vitest-runner": "10.0.0"
+    }
+  },
+  "scripts": {
+    "mutation": "stryker run",
+    "mutation:incremental": "stryker run --incremental"
+  },
+  "optionalScripts": {
+    "quality:gate:deep": "npm run quality:gate && npm run mutation:incremental"
+  },
+  "files": [
+    {
+      "source": "files/stryker.config.mjs",
+      "target": "stryker.config.mjs",
+      "mode": "copy-or-merge"
+    }
+  ],
+  "docs": [
+    "Document npm run mutation as the mutation testing command.",
+    "Document the explicit deep local gate when local mutation feedback is desired.",
+    "Document report output under reports/mutation/.",
+    "Document .stryker-tmp/ as an ignored temporary sandbox."
+  ],
+  "verify": ["npm run mutation"],
+  "notes": [
+    "Adapt src/ mutation globs before applying to repos with a different runtime source directory.",
+    "Keep mutation testing out of fast pre-push hooks unless the target repo explicitly accepts the runtime cost.",
+    "Do not weaken existing mutation thresholds without explicit approval."
+  ]
+}

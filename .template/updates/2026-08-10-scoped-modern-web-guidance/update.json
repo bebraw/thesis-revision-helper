@@ -1,0 +1,16 @@
+{
+  "id": "2026-08-10-scoped-modern-web-guidance",
+  "title": "Add scoped Modern Web Guidance",
+  "status": "implemented",
+  "risk": "medium",
+  "adrs": ["docs/adrs/implemented/ADR-052-adopt-scoped-modern-web-guidance.md"],
+  "touches": [
+    ".codex/skills/modern-web-guidance/",
+    "AGENTS.md",
+    "ARCHITECTURE.md",
+    "README.md",
+    "docs/adrs/",
+    "specs/agent-skills/spec.md"
+  ],
+  "checks": ["npm run format:check", "npm run quality:gate"]
+}

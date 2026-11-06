@@ -1,0 +1,16 @@
+{
+  "id": "2026-07-30-fallow-type-aware-diagnostics",
+  "title": "Adopt type-aware Fallow diagnostics",
+  "status": "implemented",
+  "risk": "low",
+  "supersedes": [],
+  "adrs": ["docs/adrs/implemented/ADR-045-adopt-type-aware-fallow-diagnostics.md"],
+  "touches": [".fallowrc.json", "package.json", "package-lock.json", "docs/", "specs/"],
+  "checks": [
+    "npm run diagnostics:readability",
+    "npm run diagnostics:health",
+    "npm run diagnostics:map",
+    "npm run quality:gate",
+    "npm run ci:local"
+  ]
+}

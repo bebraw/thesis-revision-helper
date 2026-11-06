@@ -1,0 +1,12 @@
+node_modules
+.cache
+.generated
+.npm
+.wrangler
+.asdlc
+.github/skills
+.codex/skills/**/references
+.capabilities/security-audit/files/.codex/skills/security-audit
+playwright-report
+reports
+test-results
