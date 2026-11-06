@@ -1,10 +1,10 @@
 # Thesis Revision Helper
 
-Thesis Revision Helper is a planned LaTeX writing assistant for students who have already done their research and developed their ideas, but need help presenting them clearly. It will combine a live outline of the manuscript's reasoning with a revision workspace where students can consult an AI proposal while composing their own version. The student's LaTeX files remain authoritative, and only the student commits manuscript changes.
+Thesis Revision Helper is a local-first LaTeX writing assistant for students who have already done their research and developed their ideas, but need help presenting them clearly. It combines an outline of the manuscript's reasoning with a revision workspace where students can consult an AI proposal while composing their own version. The student's LaTeX files remain authoritative, and only the student commits manuscript changes.
 
-The current implementation increment is an early vertical slice: open a small local project, edit a paragraph, see its purpose update automatically, request a proposal, compose and commit a student revision, and see the outline refresh. The [product spec](specs/thesis-revision/spec.md) defines its boundary and the broader first-release requirements; those capabilities are **not implemented yet**. The planned architecture uses a local companion for project access and a Cloudflare backend alongside it, as recorded in [ADR-069](docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md).
+The current implementation increment is an early vertical slice: open a small local project, edit a paragraph, see its purpose update automatically, request a proposal, compose and commit a student revision, and see the outline refresh. The [product spec](specs/thesis-revision/spec.md) defines the supported subset, its limitations, and the broader first-release requirements. A local companion owns project access; configured model requests use Cloudflare, as recorded in [ADR-069](docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md).
 
-The repository currently runs the inherited `vibe-template` Cloudflare Worker stub, served with Wrangler and centered on server-rendered HTML with a small JSON API. It does not yet open or edit LaTeX projects or provide AI assistance.
+The inherited `vibe-template` Cloudflare Worker stub remains available separately through the existing Wrangler development command.
 
 The repo vendors ASDLC reference material in `.asdlc/` as local guidance instead of recreating it per project. Repo-specific truth lives in `ARCHITECTURE.md`, `specs/`, and `docs/adrs/`: generated code still needs to match those documents, and passing CI alone is not enough.
 
@@ -62,6 +62,16 @@ The repository includes compact instructions under `.codex/skills/` that help ca
 - [`$local-ci`](.codex/skills/local-ci/SKILL.md) — run the repository's GitHub Actions workflow locally for workflow-sensitive or release-readiness validation.
 
 Each linked `SKILL.md` is the source of truth for boundaries and workflow details. Project-wide routing rules live in [`AGENTS.md`](AGENTS.md).
+
+## Local Application
+
+Use the pinned Node version with `nvm use`, install the existing dependencies with `npm install`, then run `npm run app`. Open `http://127.0.0.1:8789` and enter the path to a local project directory. The service binds only to loopback. Source and draft editing work without a model connection; analysis and proposals show an unavailable state until a provider is configured.
+
+Use this single-user application without simultaneously editing its source files in another process. Changes detected between operations produce a conflict. The accepted concurrent path-replacement limitation is described in the [product spec](specs/thesis-revision/spec.md).
+
+For Cloudflare Workers AI, set `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, and `CLOUDFLARE_AI_MODEL` in the local service's environment before starting it. Use a token permitted to run the selected model. Credentials stay in the local service, not the browser or project export. Model requests send the selected passage and relevant nearby context to Cloudflare.
+
+Drafts and related project data are stored separately from the manuscript under `~/Library/Application Support/Thesis Revision Helper/`. The browser build writes to ignored `public/assets/`; source saves use temporary sibling files for atomic replacement. The initial slice does not implement the whole first release: see the product spec for supported LaTeX, recovery behavior, and current limitations.
 
 ## Current Starter Runtime
 

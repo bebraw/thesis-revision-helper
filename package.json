@@ -14,6 +14,9 @@
     }
   },
   "scripts": {
+    "app": "npm run build:browser && node local/companion.mjs",
+    "build": "npm run build:css && npm run build:browser",
+    "build:browser": "node ./node_modules/typescript-7/bin/tsc --project tsconfig.browser.json",
     "build:css": "mkdir -p ./.generated && tailwindcss -i ./src/tailwind-input.css -o ./.generated/styles.css --minify",
     "capabilities:verify": "node ./scripts/verify-capability-kits.mjs",
     "capabilities:verify:browser": "node ./scripts/verify-capability-kits.mjs --browser",

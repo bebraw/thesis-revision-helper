@@ -1,4 +1,4 @@
-> **Project:** Thesis Revision Helper is a planned LaTeX writing assistant for students who have completed their research and need help presenting their ideas clearly. The inherited Worker is still a starter stub; the product is not implemented yet.
+> **Project:** Thesis Revision Helper is a local-first LaTeX writing assistant for students who have completed their research and need help presenting their ideas clearly. Its early vertical slice is under development; the inherited Worker remains a separate starter stub.
 >
 > **Product context:** Read [`specs/thesis-revision/spec.md`](./specs/thesis-revision/spec.md) for the current vertical slice, full first-release contract, and deferred work. Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) and [ADR-069](./docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md) for the planned local companion and Cloudflare backend boundaries. LaTeX source remains authoritative and only the student commits manuscript changes.
 >

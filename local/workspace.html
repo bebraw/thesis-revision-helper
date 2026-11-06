@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Thesis Revision Helper</title>
+    <link rel="stylesheet" href="/workspace.css" />
+    <script type="module" src="/assets/browser/workspace.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Thesis Revision Helper</h1>
+      <p id="project-label">No project open</p>
+    </header>
+    <main>
+      <form id="open-form" class="open-form">
+        <label for="project-path">Project directory</label>
+        <input id="project-path" name="path" type="text" placeholder="/path/to/project" autocomplete="off" required disabled />
+        <button id="open-project" type="submit" disabled>Open project</button>
+      </form>
+      <p id="provider-status" role="status">Checking model configuration…</p>
+      <p id="error" role="alert" class="error"></p>
+      <p id="notice" role="status" class="notice"></p>
+      <section id="empty" class="empty">
+        <h2>Open a LaTeX project</h2>
+        <p>Enter the local project directory to inspect its source and paragraph purposes.</p>
+      </section>
+      <div id="workspace" class="workspace" hidden>
+        <aside class="sidebar" aria-label="Project files">
+          <h2>Files</h2>
+          <nav id="files" aria-label="Files"></nav>
+          <h2>Saved drafts</h2>
+          <div id="recovery"></div>
+        </aside>
+        <section class="manuscript" aria-labelledby="manuscript-heading">
+          <div class="section-heading">
+            <div>
+              <h2 id="manuscript-heading">Manuscript</h2>
+              <p id="file-label"></p>
+            </div>
+            <div class="actions">
+              <span id="save-status" role="status"></span><button id="undo" type="button" disabled>Undo revision</button>
+            </div>
+          </div>
+          <label class="sr-only" for="source">LaTeX source</label>
+          <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          <p id="diagnostics" class="warning" role="status"></p>
+          <div id="revision-actions" class="revision-actions">
+            <span>Revise selected paragraph:</span>
+            <button id="language" type="button">Language</button>
+            <button id="clarity" type="button">Clarity</button>
+          </div>
+          <section id="revision" class="revision" aria-labelledby="revision-heading" hidden>
+            <div class="section-heading">
+              <h2 id="revision-heading">Revision</h2>
+              <button id="close-revision" type="button">Return to manuscript</button>
+            </div>
+            <p>The original and proposal are references. Your revision is the text that will be committed.</p>
+            <div class="revision-grid">
+              <section>
+                <h3>Original</h3>
+                <pre id="revision-original"></pre>
+              </section>
+              <section id="proposal-panel">
+                <h3>One possible revision</h3>
+                <pre id="revision-proposal"></pre>
+                <p id="explanation"></p>
+                <p id="proposal-warnings" class="warning" role="status"></p>
+              </section>
+              <section>
+                <label for="draft"><strong>Your revision</strong></label
+                ><textarea id="draft" spellcheck="false"></textarea>
+                <p id="draft-status" role="status"></p>
+              </section>
+            </div>
+            <div class="actions revision-controls">
+              <button id="generate" type="button">Generate proposal</button>
+              <button id="proposal-toggle" type="button" aria-expanded="true">Hide proposal</button>
+              <button id="commit" type="button" class="primary">Use my revision</button>
+            </div>
+            <div id="review" class="review" role="alert" hidden>
+              <h3>Review before committing</h3>
+              <p id="review-warnings"></p>
+              <div class="actions">
+                <button id="confirm-commit" type="button" class="primary">Commit anyway</button
+                ><button id="cancel-review" type="button">Keep editing</button>
+              </div>
+            </div>
+          </section>
+        </section>
+        <aside class="outline" aria-labelledby="outline-heading">
+          <div class="section-heading"><h2 id="outline-heading">Outline</h2></div>
+          <p id="analysis-status" role="status">Not analysed</p>
+          <p>Purposes are AI interpretations of the current source.</p>
+          <nav id="outline" aria-label="Paragraph outline"></nav>
+        </aside>
+      </div>
+    </main>
+  </body>
+</html>

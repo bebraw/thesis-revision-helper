@@ -103,6 +103,8 @@ ADRs are grouped by lifecycle status:
 | [ADR-066](./implemented/ADR-066-scope-agent-guidance-to-the-task.md)                   | Implemented | Use capability-based, task-scoped agent guidance and honor existing authorization.                |
 | [ADR-067](./implemented/ADR-067-refresh-reviewed-web-guidance.md)                      | Implemented | Review and pin Modern Web Guidance 0.0.191 while retaining local integration boundaries.          |
 | [ADR-068](./implemented/ADR-068-verify-browser-screenshot-tracing.md)                  | Implemented | Verify screenshot tracing and Linux ARM64 Lighthouse audits before distributing browser pins.     |
+| [ADR-070](./implemented/ADR-070-assume-single-user-source-editing.md)                  | Implemented | Assume no concurrent external source edits while retaining sequential conflict checks.            |
+| [ADR-071](./implemented/ADR-071-accept-local-path-replacement-race.md)                 | Implemented | Accept the local concurrent ancestor-directory replacement race for the current scope.            |
 
 ## Creating A New ADR
 
