@@ -107,6 +107,7 @@ ADRs are grouped by lifecycle status:
 | [ADR-071](./implemented/ADR-071-accept-local-path-replacement-race.md)                 | Superseded  | Accept the local concurrent ancestor-directory replacement race for the current scope.            |
 | [ADR-072](./implemented/ADR-072-make-mutation-diagnostic-only.md)                      | Implemented | Keep mutation testing as an optional diagnostic rather than a quality gate.                       |
 | [ADR-073](./implemented/ADR-073-use-a-browser-working-copy.md)                         | Implemented | Use a browser working copy, copy/paste, and an optional local model.                              |
+| [ADR-074](./implemented/ADR-074-run-the-application-locally.md)                        | Implemented | Run the application locally and retain the existing browser origin.                               |
 
 ## Creating A New ADR
 

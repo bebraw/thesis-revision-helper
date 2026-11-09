@@ -6,13 +6,14 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
 
 ## Product Architecture
 
-The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behavior and current increment. [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md) records the browser working-copy decision.
+The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behavior and current increment. [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md) records the browser working-copy decision; [ADR-074](docs/adrs/implemented/ADR-074-run-the-application-locally.md) records the local-only runtime.
 
 - Use a single-user browser interface for one pasted LaTeX document at a time. The student copies the result back to their external file; the app does not access that file directly or detect external edits.
 - Keep the working copy and revision drafts in browser `localStorage` for recovery, with explicit failure handling. This storage is not a backup. Generated analysis remains separate from manuscript text.
 - Student editing transactions change the working copy; model analysis and proposals do not. Keep editing independent of model availability, guard commits against stale or ambiguous targets, and preserve drafts on failure.
 - Connect directly to a configured, credential-free loopback model service and send only necessary source and context. Validate endpoints and model output; treat manuscript and model content as untrusted.
-- Serve the workspace directly at `/` and retain the starter at `/starter`, without sending manuscript state through the Worker. Browser modules build to ignored `public/assets/`; the bundled sample is available in the app without a separate launcher.
+- Run the application locally on loopback; do not offer a hosted product deployment. Preserve the default `http://127.0.0.1:8787` origin for recovery of existing browser storage.
+- Serve the workspace directly at `/` and retain the starter at `/starter`, without sending manuscript state through the local Worker. Browser modules build to ignored `public/assets/`; the bundled sample is available in the app without a separate launcher.
 
 ## Global Rules
 
@@ -45,7 +46,7 @@ The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behav
 - Use the scoped `modern-web-guidance` skill as pinned, telemetry-disabled implementation input for substantive web-platform decisions. Repository architecture, specs, source conventions, and verification remain authoritative, and upstream upgrades require deliberate review.
 - Use a connected Cloudflare MCP as the retrieval and account-operation layer for current Cloudflare product work. Keep only the `workers-best-practices` and `wrangler` skills in the template baseline; add product-specific Cloudflare skills when a project actually adopts those products.
 - Node is pinned exactly through `package.json`, npm is constrained to a compatible major there instead of an exact patch pin, and `@types/node` stays on the supported Node major.
-- Keep the deployed starter Worker Web-standards-only. Compatibility dates on or after 2026-08-04 must explicitly set both `no_nodejs_compat` and `no_nodejs_compat_v2` unless an ADR adopts Node runtime APIs, and the fast and affected quality paths must reject Node built-in imports from production source.
+- Keep the starter Worker Web-standards-only. Compatibility dates on or after 2026-08-04 must explicitly set both `no_nodejs_compat` and `no_nodejs_compat_v2` unless an ADR adopts Node runtime APIs, and the fast and affected quality paths must reject Node built-in imports from production source.
 - Enable Workers Logs and sampled traces explicitly for the starter; keep sampling rates visible in Wrangler configuration so downstream projects can tune collection volume deliberately.
 - Keep the npm package explicitly ESM so TypeScript-based Vite configuration has one unambiguous module format.
 - The verification baseline is split into a fast gate and a browser gate so quick checks can return earlier without dropping full coverage.

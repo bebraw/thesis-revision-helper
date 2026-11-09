@@ -4,7 +4,7 @@ Thesis Revision Helper is a local-first LaTeX writing assistant for students who
 
 The current implementation increment is an early vertical slice: paste one LaTeX document, navigate its hierarchical outline alongside the editor, see the selected paragraph's purpose and tips, request a proposal, compose and commit a student revision, and copy the result back to the file. The [product spec](specs/thesis-revision/spec.md) defines the supported subset, its limitations, and the broader first-release requirements. The browser stores a working copy and can connect to a local model, as recorded in [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md).
 
-The inherited `vibe-template` Cloudflare Worker stub remains available at `/starter`.
+The application runs locally; there is no supported hosted deployment. The inherited `vibe-template` Worker stub remains available locally at `/starter`.
 
 The repo vendors ASDLC reference material in `.asdlc/` as local guidance instead of recreating it per project. Repo-specific truth lives in `ARCHITECTURE.md`, `specs/`, and `docs/adrs/`: generated code still needs to match those documents, and passing CI alone is not enough.
 
@@ -15,6 +15,7 @@ Local development in this repo targets macOS. Other platforms may need script an
 - Product behavior, current increment, and first-release direction: [`specs/thesis-revision/spec.md`](specs/thesis-revision/spec.md)
 - Cross-cutting constraints: [`ARCHITECTURE.md`](ARCHITECTURE.md)
 - Browser working copy and local model connection: [`ADR-073`](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md)
+- Local-only application runtime: [`ADR-074`](docs/adrs/implemented/ADR-074-run-the-application-locally.md)
 - Development setup and local CI: `docs/development.md`
 - Architecture decisions: `docs/adrs/README.md`
 - Feature and architecture specs: `specs/README.md`
@@ -67,6 +68,8 @@ Each linked `SKILL.md` is the source of truth for boundaries and workflow detail
 
 Use the pinned Node version with `nvm use`, install the existing dependencies with `npm install`, then run `npm start`. Once Wrangler reports that it is ready, open `http://127.0.0.1:8787/`. Paste one LaTeX file or choose **Try the sample**. The [tutorial](docs/tutorial.md) walks through editing and revising it. `npm run app` remains an alias for `npm start`.
 
+Wrangler supplies the local server and listens on the loopback interface; the application does not require a Cloudflare account. Keep using the same address to access the browser's existing working copy.
+
 The app saves a working copy and revision drafts in this browser's `localStorage`. Copy the source back to your LaTeX file when ready; the app does not write to it or detect external edits. Browser storage can be cleared or unavailable, so keep an independent copy. The browser build writes to ignored `public/assets/`.
 
 Editing works without AI. To enable purposes and proposals, configure a local OpenAI-compatible model endpoint and model name in **AI connection**. The service must allow requests from the app's origin. Selected passages and nearby context are sent directly from the browser to that local service. The initial slice does not implement the whole first release: see the product spec for supported LaTeX and current limitations.
@@ -88,7 +91,7 @@ Editing works without AI. To enable purposes and proposals, configure a local Op
 - Run the fast local gate with `npm run quality:gate:fast` during normal iteration.
 - Run the baseline repo gate with `npm run quality:gate`.
 - Verify executable Workers capability kits in isolated temporary adopters with `npm run capabilities:verify`; use `npm run capabilities:verify:browser` for the synthetic standard-adopter browser lane.
-- Run `npm run preflight` before deployment to check the pinned runtime, Wrangler authentication, declared bindings, and a non-provisioning deploy dry run.
+- The retained template-only `npm run preflight` checks Wrangler deployment readiness for downstream template users; it is not needed for the local application.
 - Run the deterministic source-shape smoke alarms directly with `npm run quality:structure`; threshold failures call for architecture review or an exact rationale-bearing exception, not mechanical file splitting.
 - Run the containerized local workflow with `npm run ci:local` when changing GitHub Actions, dependencies or installation behavior, build or container setup, browser CI setup, or when performing a full PR or release readiness check. It emits structured run, job, and step progress for agents, uses Local CI parallelism with warm-cache serialization, and pauses failed runners for retry.
 - Run advisory codebase readability diagnostics with `npm run diagnostics:codebase`.

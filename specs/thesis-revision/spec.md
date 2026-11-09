@@ -20,7 +20,7 @@ Scrolling marks the reading position independently of the selected revision targ
 
 The fictional [sample](../../examples/sample-thesis/main.tex) and its [tutorial](../../docs/tutorial.md) demonstrate the single-file workflow. Loading the sample must not silently replace an existing working copy.
 
-For local use, `npm start` starts the Worker and shows when the server is ready. Its root address serves the workspace directly; `/app/` redirects to the root for existing links. `npm run app` is an alias. The browser build recreates its generated assets directory so removed source modules are not served or deployed from a stale build.
+The application runs locally and has no supported hosted deployment. `npm start` starts the Worker on loopback and shows when the server is ready; the default address is `http://127.0.0.1:8787/`. Its root address serves the workspace directly; `/app/` redirects to the root for existing links. `npm run app` is an alias. Preserve this default origin so existing browser working copies remain accessible. The browser build recreates its generated assets directory so removed source modules are not served from a stale build.
 
 ### Architecture
 
@@ -28,7 +28,7 @@ For local use, `npm start` starts the Worker and shows when the server is ready.
 - **Entry points:** A single-user browser interface and optional local model service.
 - **State authority:** The student's external LaTeX file is updated by the student. The app edits a separate browser working copy; generated analysis and revision drafts remain distinct from source text.
 - **Public contracts:** The operations, data distinctions, source and revision guards, and progress events defined below.
-- **Dependency direction:** Keep editor, parser, storage, and model adapters replaceable. The browser connects directly to a credential-free local model. See [ADR-073](../../docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md) and [ARCHITECTURE.md](../../ARCHITECTURE.md).
+- **Dependency direction:** Keep editor, parser, storage, and model adapters replaceable. The browser connects directly to a credential-free local model. See [ADR-073](../../docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md), [ADR-074](../../docs/adrs/implemented/ADR-074-run-the-application-locally.md), and [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 ### Outside the first release
 
