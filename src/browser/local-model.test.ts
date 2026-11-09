@@ -6,9 +6,14 @@ const completion = (content: string) => Response.json({ choices: [{ message: { c
 
 describe("browser local model", () => {
   it("sends a paragraph to the configured local model and returns its purpose", async () => {
-    const fetcher = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => completion('{"purpose":"Introduces the method."}'));
+    const fetcher = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) =>
+      completion('{"purpose":"Introduces the method.","tips":["Clarify which samples were included."]}'),
+    );
     const model = createLocalModel({ endpoint, model: "local-model", fetcher });
-    await expect(model.analyse("The method.", "Methods section")).resolves.toEqual({ purpose: "Introduces the method." });
+    await expect(model.analyse("The method.", "Methods section")).resolves.toEqual({
+      purpose: "Introduces the method.",
+      tips: ["Clarify which samples were included."],
+    });
     const [url, options] = fetcher.mock.calls[0] ?? [];
     expect(url).toBe(endpoint);
     expect(options?.credentials).toBe("omit");
@@ -17,6 +22,20 @@ describe("browser local model", () => {
     expect(body.model).toBe("local-model");
     expect(body.messages[1].content).toContain("The method.");
     expect(body.messages[1].content).toContain("Methods section");
+  });
+
+  it("accepts a missing tips list as no feedback", async () => {
+    const model = createLocalModel({ endpoint, model: "model", fetcher: async () => completion('{"purpose":null}') });
+    await expect(model.analyse("Text.", "Context")).resolves.toEqual({ purpose: null, tips: [] });
+  });
+
+  it.each([
+    '{"purpose":"Describes a method.","tips":[42]}',
+    '{"purpose":"Describes a method.","tips":[" "]}',
+    '{"purpose":"Describes a method.","tips":["One","Two","Three","Four"]}',
+  ])("rejects malformed selected-paragraph feedback", async (content) => {
+    const model = createLocalModel({ endpoint, model: "model", fetcher: async () => completion(content) });
+    await expect(model.analyse("Text.", "Context")).rejects.toThrow("Model request failed");
   });
 
   it("returns a validated proposal separately from the student's text", async () => {

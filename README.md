@@ -2,7 +2,7 @@
 
 Thesis Revision Helper is a local-first LaTeX writing assistant for students who have already done their research and developed their ideas, but need help presenting them clearly. It combines an outline of the manuscript's reasoning with a revision workspace where students can consult an AI proposal while composing their own version. The student's LaTeX files remain authoritative, and only the student commits manuscript changes.
 
-The current implementation increment is an early vertical slice: paste one LaTeX document, edit a paragraph, see its purpose update automatically, request a proposal, compose and commit a student revision, and copy the result back to the file. The [product spec](specs/thesis-revision/spec.md) defines the supported subset, its limitations, and the broader first-release requirements. The browser stores a working copy and can connect to a local model, as recorded in [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md).
+The current implementation increment is an early vertical slice: paste one LaTeX document, navigate its hierarchical outline alongside the editor, see the selected paragraph's purpose and tips, request a proposal, compose and commit a student revision, and copy the result back to the file. The [product spec](specs/thesis-revision/spec.md) defines the supported subset, its limitations, and the broader first-release requirements. The browser stores a working copy and can connect to a local model, as recorded in [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md).
 
 The inherited `vibe-template` Cloudflare Worker stub remains available at `/starter`.
 

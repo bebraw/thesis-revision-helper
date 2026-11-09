@@ -2,6 +2,20 @@ import { describe, expect, it } from "vitest";
 import { parseLatex, validateProposalSyntax } from "./latex";
 
 describe("parseLatex", () => {
+  it("retains exact heading source and raw title through optional arguments and nested markup", () => {
+    const source = String.raw`\begin{document}
+\section*[Short {title}]{A \emph{nested \{ literal\}}}
+Body.
+\end{document}`;
+    const [heading] = parseLatex(source).headings;
+    expect(heading).toMatchObject({
+      level: 2,
+      text: String.raw`\section*[Short {title}]{A \emph{nested \{ literal\}}}`,
+      title: String.raw`A \emph{nested \{ literal\}}`,
+    });
+    expect(heading && source.slice(heading.start, heading.end)).toBe(heading?.text);
+  });
+
   it("excludes the preamble and recognises nested starred headings and paragraph boundaries", () => {
     const source = String.raw`\documentclass{article}
 \begin{document}
@@ -13,6 +27,7 @@ Second paragraph.\par Third paragraph.
 \end{document}`;
     const result = parseLatex(source);
     expect(result.headings.map((heading) => heading.text)).toEqual([String.raw`\section*[Short]{A {nested} title}`]);
+    expect(result.headings.map((heading) => heading.title)).toEqual(["A {nested} title"]);
     expect(result.paragraphs.map((paragraph) => paragraph.text)).toEqual([
       String.raw`First wrapped
 line.\\ Still here.`,

@@ -29,6 +29,26 @@ describe("browser backend", () => {
     const restored = await createBrowserBackend({ storage: store })("/api/open", {});
     expect(restored).toMatchObject({ text: source });
   });
+
+  it("returns source headings with levels and positions when opening and saving", async () => {
+    const request = createBrowserBackend({ storage: storage() });
+    const text = "\\begin{document}\n\\section{Method}\nFirst paragraph.\n\\subsection{Data}\nSecond paragraph.\n\\end{document}";
+    const opened = (await request("/api/open", { text })) as Opened;
+    expect(opened).toMatchObject({
+      headings: [
+        { text: "\\section{Method}", title: "Method", level: 2, start: text.indexOf("\\section") },
+        { text: "\\subsection{Data}", title: "Data", level: 3, start: text.indexOf("\\subsection") },
+      ],
+    });
+    const changed = text.replace("Data", "Dataset");
+    const saved = await request("/api/save", { projectId: opened.projectId, path: opened.path, version: opened.version, text: changed });
+    expect(saved).toMatchObject({
+      headings: [
+        { title: "Method", level: 2 },
+        { title: "Dataset", level: 3 },
+      ],
+    });
+  });
 });
 
 type Opened = {
@@ -56,6 +76,27 @@ async function start(request: ReturnType<typeof createBrowserBackend>, document:
 }
 
 describe("browser workspace safeguards", () => {
+  it("returns selected-paragraph feedback without changing the source", async () => {
+    const model = {
+      analyse: async () => ({ purpose: "Introduces the topic.", tips: ["Clarify the intended audience."] }),
+      propose: async () => ({ revision: "", explanation: [], questions: [] }),
+    };
+    const request = createBrowserBackend({ storage: storage(), getModel: () => model });
+    const document = await open(request);
+    const paragraph = document.paragraphs[0];
+    if (!paragraph) throw new Error("Missing paragraph");
+    await expect(
+      request("/api/analysis", {
+        projectId: document.projectId,
+        path: document.path,
+        version: document.version,
+        start: paragraph.start,
+        end: paragraph.end,
+      }),
+    ).resolves.toEqual({ purpose: "Introduces the topic.", tips: ["Clarify the intended audience."], version: document.version });
+    expect(await request("/api/file", { projectId: document.projectId })).toMatchObject({ text: source, version: document.version });
+  });
+
   it("saves a student draft independently and commits it with undo", async () => {
     const store = storage();
     const request = createBrowserBackend({ storage: store });

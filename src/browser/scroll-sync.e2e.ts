@@ -57,11 +57,24 @@ test("tracks the visible paragraph without changing the selected revision target
   await expect(third).toHaveAttribute("aria-current", "location");
   await expect(first).toHaveAttribute("aria-pressed", "true");
   await page.setViewportSize({ width: 390, height: 844 });
+  await editor.evaluate((node: HTMLTextAreaElement) => {
+    node.scrollTop = node.scrollHeight;
+    node.dispatchEvent(new Event("scroll"));
+  });
+  await expect(page.locator("#outline .outline-item").nth(2)).toHaveAttribute("aria-current", "location");
+  await page.getByRole("button", { name: "Outline & feedback" }).click();
   await expect(third).toHaveAttribute("aria-current", "location");
 
   await second.click();
-  await expect(second).toHaveAttribute("aria-pressed", "true");
+  await expect(editor).toBeVisible();
+  await expect(page.locator("#outline .outline-item").nth(1)).toHaveAttribute("aria-pressed", "true");
   await expect(editor).toBeFocused();
+  expect(await editor.evaluate((node: HTMLTextAreaElement) => node.value.slice(node.selectionStart, node.selectionEnd))).toBe(
+    passages[1]?.trimEnd(),
+  );
+  await page.getByRole("button", { name: "Outline & feedback" }).click();
+  await page.getByRole("button", { name: "Show paragraph in manuscript" }).click();
+  await expect(editor).toBeVisible();
   expect(await editor.evaluate((node: HTMLTextAreaElement) => node.value.slice(node.selectionStart, node.selectionEnd))).toBe(
     passages[1]?.trimEnd(),
   );

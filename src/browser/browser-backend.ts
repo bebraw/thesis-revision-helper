@@ -4,7 +4,7 @@ import type { RevisionSession } from "../thesis/revision.js";
 import type { WorkspaceRequest } from "./workspace.js";
 
 export interface BrowserModel {
-  analyse(source: string, context: string): Promise<{ purpose: string | null }>;
+  analyse(source: string, context: string): Promise<{ purpose: string | null; tips?: string[] }>;
   propose(
     source: string,
     context: string,
@@ -247,9 +247,16 @@ export function createBrowserBackend(options: { storage: Storage; getModel?: () 
       checkStorage();
       if (workspace?.id !== current.id || workspace.version !== current.version || model() !== provider)
         throw new Error("Analysis is stale because the manuscript or model changed.");
-      if (!(result.purpose === null || (typeof result.purpose === "string" && result.purpose.trim())))
+      if (!(result.purpose === null || (typeof result.purpose === "string" && result.purpose.trim() && result.purpose.length <= 4000)))
         throw new Error("Analysis returned an invalid response.");
-      return { purpose: result.purpose, version: current.version };
+      const tips = result.tips === undefined ? [] : result.tips;
+      if (
+        !Array.isArray(tips) ||
+        tips.length > 3 ||
+        !tips.every((tip: unknown) => typeof tip === "string" && tip.trim().length > 0 && tip.length <= 600)
+      )
+        throw new Error("Analysis returned an invalid response.");
+      return { purpose: result.purpose, tips, version: current.version };
     }
     if (route === "/api/revision/start") {
       requireCurrent(input);

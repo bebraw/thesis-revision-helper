@@ -1,5 +1,9 @@
 import type { ProposalResponse, PurposeResponse } from "../thesis/cloudflare-model.js";
 
+export interface LocalAnalysisResponse extends PurposeResponse {
+  tips: string[];
+}
+
 export interface LocalModelOptions {
   endpoint: string;
   model: string;
@@ -93,20 +97,24 @@ export function createLocalModel(options: LocalModelOptions) {
   }
 
   return {
-    async analyse(source: string, context: string, signal?: AbortSignal): Promise<PurposeResponse> {
+    async analyse(source: string, context: string, signal?: AbortSignal): Promise<LocalAnalysisResponse> {
       const output = await request(
-        'Describe the paragraph\'s contribution in context. Return {"purpose": string or null}; use null when the purpose is unclear.',
+        'Describe the paragraph\'s contribution in context. Offer up to three concise language or clarity suggestions or questions grounded in the paragraph; do not invent facts, and return an empty list when none are useful. Return {"purpose": string or null, "tips": string[]}; use null when the purpose is unclear.',
         source,
         context,
         signal,
       );
       if (
         !record(output) ||
-        !(output.purpose === null || (typeof output.purpose === "string" && output.purpose.trim() && output.purpose.length <= 4000))
+        !(output.purpose === null || (typeof output.purpose === "string" && output.purpose.trim() && output.purpose.length <= 4000)) ||
+        (output.tips !== undefined &&
+          (!Array.isArray(output.tips) ||
+            output.tips.length > 3 ||
+            !output.tips.every((tip: unknown) => typeof tip === "string" && tip.trim().length > 0 && tip.length <= 600)))
       ) {
         throw new Error("Model request failed");
       }
-      return { purpose: output.purpose };
+      return { purpose: output.purpose, tips: output.tips ?? [] };
     },
     async propose(source: string, context: string, mode: "language" | "clarity", signal?: AbortSignal): Promise<ProposalResponse> {
       const output = await request(

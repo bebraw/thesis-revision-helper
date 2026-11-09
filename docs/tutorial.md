@@ -1,6 +1,6 @@
 # Try the sample document
 
-This walkthrough uses a fictional thesis about a local research-note index. You can edit the source and use the revision workspace without a model. A local OpenAI-compatible model can add paragraph purposes and proposals.
+This walkthrough uses a fictional thesis about a local research-note index. You can edit the source and use the revision workspace without a model. A local OpenAI-compatible model can add paragraph purposes, tips, and proposals.
 
 ## Open the sample
 
@@ -22,11 +22,13 @@ Start a credential-free OpenAI-compatible model service on your computer and con
 
 ## Revise
 
-1. Select a paragraph in the outline. If a model is connected, its purpose appears after a short pause and is labelled as an AI interpretation.
-2. Select **Language** or **Clarity**. The original is a read-only reference, and **Your revision** starts with the original text.
+1. Select a paragraph in **Outline & feedback**. The outline groups paragraphs under their source headings. If a model is connected, the selected paragraph's purpose and any helpful tips appear after a short pause and are labelled as AI interpretations.
+2. Select **Language** or **Clarity** in the feedback panel. On a narrow screen, return to **Outline & feedback** after navigating to the passage. The original is a read-only reference, and **Your revision** starts with the original text.
 3. If a model is connected, select **Generate proposal** to see **One possible revision**. It is a separate reference and does not change your draft or source. Proposals that fail preservation checks are rejected.
 4. Edit **Your revision**, then select **Use my revision**. Review and confirm any warnings if they appear. The working copy now contains your text. **Undo revision** restores the passage.
 5. To try draft recovery, open another revision, edit it, and select **Return to manuscript**. Reload the page and use **Saved drafts** to restore it.
+
+Scrolling the manuscript marks your reading position in the outline without changing the paragraph selected for feedback. Use **Follow reading position** to keep it in view, or **Show current passage** to find it after browsing. On a narrow screen, switch between the manuscript and outline panels.
 
 ## Copy your work back
 

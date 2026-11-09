@@ -194,10 +194,49 @@ describe("workspace controller", () => {
     const pending = workspace.analyse();
     await Promise.resolve();
     workspace.selectParagraph(1);
-    finish?.({ purpose: "Outdated purpose", version: "v1" });
+    finish?.({ purpose: "Outdated purpose", tips: ["Outdated tip"], version: "v1" });
     await pending;
     expect(workspace.state.purpose).not.toBe("Outdated purpose");
+    expect(workspace.state.tips).toEqual([]);
     expect(workspace.state.analysisStatus).toBe("Pending");
+    workspace.dispose();
+  });
+
+  it("clears old tips on selection and edits and rejects delayed feedback", async () => {
+    let finish: ((value: unknown) => void) | undefined;
+    let count = 0;
+    const twoParagraphs = {
+      ...file,
+      text: "Original. Other.",
+      paragraphs: [
+        { start: 0, end: 9, text: "Original.", safe: true },
+        { start: 10, end: 16, text: "Other.", safe: true },
+      ],
+    };
+    const request: WorkspaceRequest = async (path) => {
+      if (path === "/api/open") return twoParagraphs;
+      if (path.startsWith("/api/revisions?")) return { revisions: [] };
+      if (path === "/api/analysis") {
+        count += 1;
+        if (count === 1) return { purpose: "First purpose", tips: ["First tip"], version: "v1" };
+        return new Promise((resolve) => (finish = resolve));
+      }
+      throw new Error(`Unexpected request ${path}`);
+    };
+    const workspace = createWorkspace(request, () => {});
+    await workspace.openText(twoParagraphs.text);
+    await workspace.analyse();
+    expect(workspace.state.tips).toEqual(["First tip"]);
+    workspace.selectParagraph(1);
+    expect(workspace.state.tips).toEqual([]);
+    const pending = workspace.analyse();
+    await Promise.resolve();
+    workspace.updateSource("Original. Other updated.", 20);
+    expect(workspace.state.tips).toEqual([]);
+    finish?.({ purpose: "Old purpose", tips: ["Old tip"], version: "v1" });
+    await pending;
+    expect(workspace.state.tips).toEqual([]);
+    expect(workspace.state.purpose).toBeNull();
     workspace.dispose();
   });
 

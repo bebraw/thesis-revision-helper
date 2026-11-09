@@ -2,6 +2,8 @@ import { createScrollSync } from "./scroll-sync.js";
 import { createBrowserBackend, type BrowserModel } from "./browser-backend.js";
 import { createLocalModel } from "./local-model.js";
 import { sampleThesis } from "./sample-thesis.js";
+import { createFeedbackView, createOutlineView, readOutlineHeadings, type OutlineHeading } from "./outline-view.js";
+import { editor, element, input } from "./workspace-dom.js";
 
 export type WorkspaceRequest = (path: string, body?: Record<string, unknown>) => Promise<unknown>;
 
@@ -19,6 +21,7 @@ interface DocumentData {
   text: string;
   version: string;
   paragraphs: Paragraph[];
+  headings: OutlineHeading[];
   diagnostics: string[];
   warnings: string[];
   staleProposalContext: boolean;
@@ -51,6 +54,7 @@ interface WorkspaceState {
   dirty: boolean;
   selected: number;
   purpose: string | null;
+  tips: string[];
   analysisStatus: string;
   saveStatus: string;
   draftStatus: string;
@@ -93,6 +97,7 @@ function documentData(value: unknown): DocumentData {
     text: string(data.text),
     version: string(data.version),
     diagnostics: strings(data.diagnostics),
+    headings: data.headings === undefined ? [] : readOutlineHeadings(data.headings, string(data.text)),
     paragraphs: data.paragraphs.map((entry: unknown) => {
       const paragraph = object(entry);
       if (typeof paragraph.safe !== "boolean") throw new Error("Invalid service response.");
@@ -136,6 +141,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     dirty: false,
     selected: -1,
     purpose: null,
+    tips: [],
     analysisStatus: "Not analysed",
     saveStatus: "No project open",
     draftStatus: "",
@@ -174,6 +180,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     state.dirty = false;
     state.selected = data.paragraphs.findIndex((paragraph) => paragraph.safe);
     state.purpose = null;
+    state.tips = [];
     state.analysisStatus = "Pending";
     state.saveStatus = "Saved locally";
     editEpoch += 1;
@@ -272,6 +279,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     state.selected = -1;
     state.saveStatus = state.dirty ? "Unsaved changes" : "Saved locally";
     state.purpose = null;
+    state.tips = [];
     state.analysisStatus = "stale";
     state.error = "";
     editEpoch += 1;
@@ -325,6 +333,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     state.selected = index;
     sourceCursor = state.document?.paragraphs[index]?.start ?? -1;
     state.purpose = null;
+    state.tips = [];
     state.analysisStatus = "Pending";
     editEpoch += 1;
     notify();
@@ -355,6 +364,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
         }),
       );
       const purpose = response.purpose === null ? null : string(response.purpose);
+      const tips = response.tips === undefined ? [] : strings(response.tips);
       const version = string(response.version);
       if (
         sequence !== analysisSequence ||
@@ -366,9 +376,12 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
       )
         return;
       state.purpose = purpose;
+      state.tips = tips;
       state.analysisStatus = purpose ? "Current · AI interpretation" : "Unclear · AI interpretation";
     } catch (error) {
       if (sequence !== analysisSequence || epoch !== editEpoch) return;
+      state.purpose = null;
+      state.tips = [];
       state.analysisStatus = "Analysis unavailable";
       state.error = message(error);
     }
@@ -378,6 +391,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     analysisSequence += 1;
     clearTimeout(analysisTimer);
     state.purpose = null;
+    state.tips = [];
     state.analysisStatus = "Analysis unavailable";
     notify();
   }
@@ -670,42 +684,52 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
   };
 }
 
-function element(id: string): HTMLElement {
-  const node = document.getElementById(id);
-  if (!node) throw new Error(`Missing workspace element: ${id}`);
-  return node;
-}
-function input(id: string): HTMLInputElement {
-  const node = element(id);
-  if (!(node instanceof HTMLInputElement)) throw new Error(`Invalid workspace input: ${id}`);
-  return node;
-}
-function editor(id: string): HTMLTextAreaElement {
-  const node = element(id);
-  if (!(node instanceof HTMLTextAreaElement)) throw new Error(`Invalid workspace editor: ${id}`);
-  return node;
-}
-
 function mountWorkspace(): void {
   const source = editor("source");
   const draft = editor("draft");
   const openForm = element("open-form");
   const outline = element("outline");
   const recovery = element("recovery");
+  const renderFeedback = createFeedbackView({
+    selection: element("feedback-selection"),
+    purpose: element("selected-purpose"),
+    tips: element("feedback-tips"),
+    showSource: element("show-selected-source"),
+    language: element("language"),
+    clarity: element("clarity"),
+  });
   let visibleProposal = true;
-  let outlineKey = "";
   let recoveryKey = "";
   let composing = false;
   let trackedDocument: DocumentData | null = null;
-  let visibleIndex: number | null = null;
-  let visibleButton: Element | null = null;
+  function setPane(pane: "manuscript" | "outline"): void {
+    element("workspace").dataset.mobilePane = pane;
+    element("show-manuscript").setAttribute("aria-pressed", String(pane === "manuscript"));
+    element("show-outline").setAttribute("aria-pressed", String(pane === "outline"));
+  }
+  const outlineView = createOutlineView({
+    root: outline,
+    follow: input("follow-reading"),
+    showCurrent: element("show-current"),
+    selectParagraph(index) {
+      const state = workspace.state;
+      const paragraph = state.document?.paragraphs[index];
+      if (!paragraph || state.dirty || state.busy || composing) return;
+      workspace.selectParagraph(index);
+      setPane("manuscript");
+      source.focus();
+      source.setSelectionRange(paragraph.start, paragraph.end);
+    },
+    navigateHeading(heading) {
+      const state = workspace.state;
+      if (state.dirty || state.busy || composing) return;
+      setPane("manuscript");
+      source.focus();
+      source.setSelectionRange(heading.start, heading.end);
+    },
+  });
   function showVisibleParagraph(index: number | null): void {
-    visibleIndex = index;
-    const button = index === null ? null : outline.children.item(index);
-    if (button === visibleButton) return;
-    visibleButton?.removeAttribute("aria-current");
-    visibleButton = button;
-    visibleButton?.setAttribute("aria-current", "location");
+    outlineView.setVisible(index);
   }
   const scrollSync = createScrollSync(source, showVisibleParagraph);
   let model: BrowserModel | null = null;
@@ -774,36 +798,19 @@ function mountWorkspace(): void {
     source.disabled = state.busy || !state.document;
     if (source.value !== state.text) source.value = state.text;
     syncScrollTracking();
-    const newOutlineKey = JSON.stringify([state.document?.paragraphs, state.selected, state.purpose, state.analysisStatus, state.dirty]);
-    if (outlineKey !== newOutlineKey) {
-      outlineKey = newOutlineKey;
-      visibleButton = null;
-      outline.replaceChildren();
-      for (const [index, paragraph] of (state.document?.paragraphs ?? []).entries()) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "outline-item";
-        button.setAttribute("aria-pressed", String(index === state.selected));
-        const label = document.createElement("span");
-        label.className = "outline-label";
-        label.textContent = `Paragraph ${index + 1}`;
-        const summary = document.createElement("span");
-        summary.className = "outline-summary";
-        summary.textContent = !paragraph.safe
-          ? "Unsupported syntax"
-          : index === state.selected && state.purpose
-            ? state.purpose
-            : paragraph.text.slice(0, 100);
-        button.append(label, summary);
-        button.addEventListener("click", () => {
-          workspace.selectParagraph(index);
-          source.focus();
-          source.setSelectionRange(paragraph.start, paragraph.end);
-        });
-        outline.append(button);
-      }
-      showVisibleParagraph(visibleIndex);
-    }
+    outlineView.render({
+      headings: state.document?.headings ?? [],
+      paragraphs: state.document?.paragraphs ?? [],
+      selected: state.selected,
+      unavailable: state.dirty || state.busy || composing,
+    });
+    renderFeedback({
+      index: state.selected,
+      paragraph: state.document?.paragraphs[state.selected],
+      purpose: state.purpose,
+      tips: state.tips,
+      unavailable: state.dirty || state.busy || composing,
+    });
     const newRecoveryKey = JSON.stringify(state.savedRevisions);
     if (newRecoveryKey !== recoveryKey) {
       recoveryKey = newRecoveryKey;
@@ -879,6 +886,7 @@ function mountWorkspace(): void {
       const endpoint = input("model-endpoint").value.trim();
       const modelName = input("model-name").value.trim();
       model = createLocalModel({ endpoint, model: modelName });
+      workspace.invalidateAnalysis();
       element("provider-status").textContent = `Local model · ${modelName}`;
       workspace.state.error = "";
       try {
@@ -918,6 +926,7 @@ function mountWorkspace(): void {
   source.addEventListener("select", () => {
     const state = workspace.state;
     if (state.dirty) return;
+    if (state.document?.headings.some((heading) => source.selectionStart >= heading.start && source.selectionStart < heading.end)) return;
     const index = state.document?.paragraphs.findIndex((p) => source.selectionStart >= p.start && source.selectionStart <= p.end) ?? -1;
     if (index >= 0 && index !== state.selected) workspace.selectParagraph(index);
   });
@@ -933,10 +942,22 @@ function mountWorkspace(): void {
     }
   });
   element("language").addEventListener("click", () => {
+    setPane("manuscript");
     void workspace.startRevision("language");
   });
   element("clarity").addEventListener("click", () => {
+    setPane("manuscript");
     void workspace.startRevision("clarity");
+  });
+  element("show-manuscript").addEventListener("click", () => setPane("manuscript"));
+  element("show-outline").addEventListener("click", () => setPane("outline"));
+  element("show-selected-source").addEventListener("click", () => {
+    const state = workspace.state;
+    const paragraph = state.document?.paragraphs[state.selected];
+    if (!paragraph || state.dirty || state.busy || composing) return;
+    setPane("manuscript");
+    source.focus();
+    source.setSelectionRange(paragraph.start, paragraph.end);
   });
   element("generate").addEventListener("click", () => {
     void workspace.generateProposal();

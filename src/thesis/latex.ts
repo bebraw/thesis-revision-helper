@@ -12,6 +12,7 @@ export interface LatexParagraph extends SourceSpan {
 
 export interface LatexHeading extends SourceSpan {
   level: number;
+  title: string;
 }
 
 export interface LatexDiagnostic {
@@ -88,14 +89,15 @@ function groupEnd(source: string, start: number, limit: number, open: string, cl
   return null;
 }
 
-function argumentsEnd(source: string, start: number, limit: number): number | null {
+function argumentBounds(source: string, start: number, limit: number): { start: number; end: number } | null {
   let position = start;
   while (source[position] === "[" && position < limit) {
     const end = groupEnd(source, position, limit, "[", "]");
     if (end === null) return null;
     position = end;
   }
-  return groupEnd(source, position, limit, "{", "}");
+  const end = groupEnd(source, position, limit, "{", "}");
+  return end === null ? null : { start: position, end };
 }
 
 function findDocumentBoundary(source: string, name: "begin" | "end", start: number): number | null {
@@ -223,13 +225,19 @@ export function parseLatex(source: string): LatexParseResult {
       if (depth === 0 && level !== undefined) {
         flush(i);
         const argsStart = source[command.end] === "*" ? command.end + 1 : command.end;
-        const end = argumentsEnd(source, argsStart, bodyEnd);
-        if (end === null) {
+        const argument = argumentBounds(source, argsStart, bodyEnd);
+        if (argument === null) {
           diagnostic(i, bodyEnd, "Incomplete heading.");
           break;
         }
-        result.headings.push({ start: i, end, text: source.slice(i, end), level });
-        i = end;
+        result.headings.push({
+          start: i,
+          end: argument.end,
+          text: source.slice(i, argument.end),
+          level,
+          title: source.slice(argument.start + 1, argument.end - 1),
+        });
+        i = argument.end;
         continue;
       }
       if (depth === 0 && command.name === "par") {
@@ -279,14 +287,14 @@ export function parseLatex(source: string): LatexParseResult {
         continue;
       }
       if (protectedCommands.has(command.name)) {
-        const end = argumentsEnd(source, command.end, bodyEnd);
-        if (end === null) {
+        const argument = argumentBounds(source, command.end, bodyEnd);
+        if (argument === null) {
           safe = false;
           diagnostic(i, command.end, "Incomplete protected command.");
           i = command.end;
         } else {
-          protect(i, end);
-          i = end;
+          protect(i, argument.end);
+          i = argument.end;
         }
         continue;
       }

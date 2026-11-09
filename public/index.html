@@ -42,10 +42,10 @@
         <p>Paste your source above or try the sample. Your working copy stays in this browser.</p>
       </section>
       <div id="workspace" class="workspace" hidden>
-        <aside class="sidebar" aria-label="Saved drafts">
-          <h2>Saved drafts</h2>
-          <div id="recovery"></div>
-        </aside>
+        <div class="pane-switch" role="group" aria-label="Workspace pane">
+          <button id="show-manuscript" type="button" aria-pressed="true">Manuscript</button>
+          <button id="show-outline" type="button" aria-pressed="false">Outline &amp; feedback</button>
+        </div>
         <section class="manuscript" aria-labelledby="manuscript-heading">
           <div class="section-heading">
             <div>
@@ -61,11 +61,10 @@
           <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
           <p class="copy-reminder">Copy the source back to your LaTeX file when you are ready. The app does not change that file.</p>
           <p id="diagnostics" class="warning" role="status"></p>
-          <div id="revision-actions" class="revision-actions">
-            <span>Revise selected paragraph:</span>
-            <button id="language" type="button">Language</button>
-            <button id="clarity" type="button">Clarity</button>
-          </div>
+          <details class="saved-drafts" open>
+            <summary>Saved drafts</summary>
+            <div id="recovery"></div>
+          </details>
           <section id="revision" class="revision" aria-labelledby="revision-heading" hidden>
             <div class="section-heading">
               <h2 id="revision-heading">Revision</h2>
@@ -105,11 +104,30 @@
           </section>
         </section>
         <aside class="outline" aria-labelledby="outline-heading">
-          <div class="section-heading"><h2 id="outline-heading">Outline</h2></div>
-          <p id="analysis-status" role="status">Not analysed</p>
-          <p>Purposes are AI interpretations of the current source.</p>
-          <p>Bar: reading position. Shading: revision target.</p>
-          <nav id="outline" aria-label="Paragraph outline"></nav>
+          <div class="section-heading"><h2 id="outline-heading">Outline &amp; feedback</h2></div>
+          <p class="outline-intro">Follow the manuscript's structure and select a paragraph to inspect its purpose.</p>
+          <div class="outline-controls">
+            <label><input id="follow-reading" type="checkbox" checked /> Follow reading position</label>
+            <button id="show-current" type="button">Show current passage</button>
+          </div>
+          <p class="outline-key">Bar: reading position. Shading: selected paragraph.</p>
+          <nav id="outline" aria-label="Manuscript outline"></nav>
+          <section class="selected-feedback" role="region" aria-labelledby="feedback-heading">
+            <div class="section-heading">
+              <h3 id="feedback-heading">Selected paragraph feedback</h3>
+              <span id="feedback-selection"></span>
+            </div>
+            <p id="analysis-status" role="status">Not analysed</p>
+            <p id="selected-purpose">Select a paragraph to see its purpose.</p>
+            <ul id="feedback-tips"></ul>
+            <p class="feedback-attribution">Purposes and tips are AI interpretations; review them against your manuscript.</p>
+            <button id="show-selected-source" type="button">Show paragraph in manuscript</button>
+            <div id="revision-actions" class="revision-actions">
+              <span>Revise this paragraph:</span>
+              <button id="language" type="button">Language</button>
+              <button id="clarity" type="button">Clarity</button>
+            </div>
+          </section>
         </aside>
       </div>
     </main>
