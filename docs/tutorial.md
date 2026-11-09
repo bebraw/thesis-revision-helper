@@ -9,10 +9,10 @@ From the repository directory, use the pinned Node version and install the exist
 ```sh
 nvm use
 npm install
-npm run app
+npm start
 ```
 
-Open `http://127.0.0.1:8787/app/` and select **Try the sample**. If a working copy is already open, confirm its replacement only after copying any text you want to keep. The tracked [sample](../examples/sample-thesis/main.tex) is not changed.
+Open `http://127.0.0.1:8787/` and select **Try the sample**. If a working copy is already open, confirm its replacement only after copying any text you want to keep. The tracked [sample](../examples/sample-thesis/main.tex) is not changed.
 
 To work on your own file, copy its LaTeX text from your editor, paste it into **Paste a LaTeX document**, and select **Open pasted text**. The app works on one document at a time and does not read included files.
 

@@ -18,7 +18,7 @@ Provide the sample in the application without creating a temporary project. Pres
 
 Connect directly from the browser to a user-configured, credential-free, loopback OpenAI-compatible model service. Validate the endpoint and model responses, send only the text and context needed, and do not persist credentials. The model service must permit requests from the application's origin; a local model is optional for writing. Parser, persistence, and model boundaries remain replaceable.
 
-The app is served with the existing Worker and static assets; manuscript state and model requests do not pass through the Worker. ADR-070 and ADR-071 describe limitations of the previous filesystem-backed companion, not browser-copy behavior.
+The app is served directly at `/` with the existing Worker and static assets; the retained starter lives at `/starter`. Manuscript state and model requests do not pass through the Worker. ADR-070 and ADR-071 describe limitations of the previous filesystem-backed companion, not browser-copy behavior.
 
 ## Consequences
 

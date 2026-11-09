@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import typescript from "typescript";
 
 test("tracks the visible paragraph without changing the selected revision target", async ({ page }) => {
-  const html = await readFile(new URL("../../public/app/index.html", import.meta.url), "utf8");
+  const html = await readFile(new URL("../../public/index.html", import.meta.url), "utf8");
   const css = await readFile(new URL("../../public/workspace.css", import.meta.url), "utf8");
   const passages = [
     "First paragraph 😀 explains the approach. ".repeat(100),

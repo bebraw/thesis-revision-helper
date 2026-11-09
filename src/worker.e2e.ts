@@ -1,7 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("renders the worker home page", async ({ page }) => {
-  await page.goto("/");
+test("serves the thesis workspace directly at the root", async ({ page }) => {
+  const response = await page.goto("/");
+
+  expect(response?.status()).toBe(200);
+  expect(new URL(page.url()).pathname).toBe("/");
+  expect(response?.headers()["content-security-policy"]).toContain("script-src 'self'");
+  await expect(page.getByRole("heading", { level: 1, name: "Thesis Revision Helper" })).toBeVisible();
+});
+
+test("keeps the starter page available separately", async ({ page }) => {
+  await page.goto("/starter");
 
   await expect(page.getByRole("heading", { level: 1, name: "vibe-template Worker" })).toBeVisible();
   await expect(
@@ -30,11 +39,25 @@ test("serves the generated stylesheet", async ({ request }) => {
   await expect(response.text()).resolves.toContain("--color-app-canvas:#f3eee6");
 });
 
-test("serves the thesis workspace and its browser module", async ({ page }) => {
+test("preserves the legacy workspace URL and its browser module", async ({ page }) => {
   await page.goto("/app/");
 
+  expect(new URL(page.url()).pathname).toBe("/");
   await expect(page.getByRole("heading", { level: 1, name: "Thesis Revision Helper" })).toBeVisible();
   const module = await page.request.get("/assets/browser/workspace.js");
   expect(module.ok()).toBe(true);
   expect(module.headers()["content-type"]).toContain("javascript");
+});
+
+test("restores a saved working copy when navigating from the legacy workspace URL", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Try the sample" }).click();
+  const source = page.getByLabel("LaTeX source");
+  await expect(source).toHaveValue(/\\documentclass/);
+  const original = await source.inputValue();
+  expect(original).toContain("\\documentclass");
+
+  await page.goto("/app/");
+  await expect(source).toHaveValue(original);
+  expect(new URL(page.url()).pathname).toBe("/");
 });

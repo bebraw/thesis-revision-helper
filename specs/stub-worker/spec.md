@@ -35,8 +35,8 @@ This template needs a concrete runnable starting point so developers can clone i
 ### Definition of Done
 
 - [ ] The template starts locally through Wrangler without extra scaffolding.
-- [ ] The root route returns a visible editorial starter page for developers.
-- [ ] The root route exposes a route index and a prominent health-probe entry point.
+- [ ] The `/starter` route returns a visible editorial starter page for developers.
+- [ ] The `/starter` route exposes a route index and a prominent health-probe entry point.
 - [ ] The health route returns stable JSON for smoke tests and tooling.
 - [ ] The spec is updated in the same change set.
 - [ ] Automated tests cover the critical behavior.
@@ -45,8 +45,8 @@ This template needs a concrete runnable starting point so developers can clone i
 
 ### Regression Guardrails
 
-- `GET /` must keep returning HTML with a recognizable starter heading.
-- `GET /` must keep rendering the route index and a visible `/api/health` entry point.
+- `GET /starter` must keep returning HTML with a recognizable starter heading.
+- `GET /starter` must keep rendering the route index and a visible `/api/health` entry point.
 - `GET /styles.css` must keep returning the generated stylesheet.
 - Worker/view runtime files must remain free of inline executable browser code; the only allowed script tags are empty same-origin asset modules under `/assets/*.js`.
 - Production source under `src/` must remain free of Node built-in imports while the Web-standards-only compatibility contract is active.
@@ -68,7 +68,7 @@ This template needs a concrete runnable starting point so developers can clone i
 **Scenario: Developer opens the starter app**
 
 - Given: the Worker is running locally
-- When: the developer visits `/`
+- When: the developer visits `/starter`
 - Then: they see a starter page that explains what the template provides and points them at `/api/health`
 
 **Scenario: Tooling checks app health**

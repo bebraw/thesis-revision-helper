@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import typescript from "typescript";
 
 test("pastes and recovers a working copy, protects it from sample replacement, and copies it back", async ({ page }) => {
-  const html = await readFile(new URL("../../public/app/index.html", import.meta.url), "utf8");
+  const html = await readFile(new URL("../../public/index.html", import.meta.url), "utf8");
   const css = await readFile(new URL("../../public/workspace.css", import.meta.url), "utf8");
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());

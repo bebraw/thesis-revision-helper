@@ -425,7 +425,7 @@ export function createCompanion(options = {}) {
     if (req.method === "GET") {
       const file =
         route === "/"
-          ? join(root, "public/app/index.html")
+          ? join(root, "public/index.html")
           : route === "/workspace.css"
             ? join(root, "public/workspace.css")
             : route.startsWith("/assets/")

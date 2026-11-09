@@ -28,8 +28,12 @@ export async function handleRequest(request: Request, { loadStylesheet }: Worker
     return cssResponse(await loadStylesheet());
   }
 
-  if (url.pathname === "/") {
+  if (url.pathname === "/starter") {
     return htmlResponse(renderHomePage(exampleRoutes));
+  }
+
+  if (url.pathname === "/app" || url.pathname === "/app/") {
+    return new Response(null, { status: 302, headers: { location: "/", "cache-control": "no-store" } });
   }
 
   if (url.pathname === "/api/health") {

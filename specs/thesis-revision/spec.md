@@ -16,9 +16,11 @@ The current slice is intentionally narrower than the full LaTeX contract below. 
 
 The fictional [sample](../../examples/sample-thesis/main.tex) and its [tutorial](../../docs/tutorial.md) demonstrate the single-file workflow. Loading the sample must not silently replace an existing working copy.
 
+For local use, `npm start` starts the Worker and shows when the server is ready. Its root address serves the workspace directly; `/app/` redirects to the root for existing links. `npm run app` is an alias. The browser build recreates its generated assets directory so removed source modules are not served or deployed from a stale build.
+
 ### Architecture
 
-- **Capability source root and composition root:** `src/thesis/` owns parsing, revision, and analysis boundaries; `src/browser/` composes the workspace, storage, and model adapters. The Worker serves the browser app and retains its starter routes.
+- **Capability source root and composition root:** `src/thesis/` owns parsing, revision, and analysis boundaries; `src/browser/` composes the workspace, storage, and model adapters. The Worker serves the browser app at `/` and retains its starter at `/starter`.
 - **Entry points:** A single-user browser interface and optional local model service.
 - **State authority:** The student's external LaTeX file is updated by the student. The app edits a separate browser working copy; generated analysis and revision drafts remain distinct from source text.
 - **Public contracts:** The operations, data distinctions, source and revision guards, and progress events defined below.

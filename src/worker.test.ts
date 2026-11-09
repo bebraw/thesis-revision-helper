@@ -3,7 +3,7 @@ import worker, { handleRequest } from "./worker";
 
 describe("worker", () => {
   it("renders the stub home page", async () => {
-    const response = await handleRequest(new Request("http://example.com/"));
+    const response = await handleRequest(new Request("http://example.com/starter"));
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/html");
@@ -14,6 +14,14 @@ describe("worker", () => {
     const body = await response.text();
     expect(body).toContain("vibe-template Worker");
     expect(body).toContain("/api/health");
+  });
+
+  it.each(["/app", "/app/"])("redirects the previous workspace URL %s to the root", async (path) => {
+    const response = await handleRequest(new Request(`http://example.com${path}`));
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("/");
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   it("returns a JSON health response", async () => {

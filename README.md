@@ -4,7 +4,7 @@ Thesis Revision Helper is a local-first LaTeX writing assistant for students who
 
 The current implementation increment is an early vertical slice: paste one LaTeX document, edit a paragraph, see its purpose update automatically, request a proposal, compose and commit a student revision, and copy the result back to the file. The [product spec](specs/thesis-revision/spec.md) defines the supported subset, its limitations, and the broader first-release requirements. The browser stores a working copy and can connect to a local model, as recorded in [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md).
 
-The inherited `vibe-template` Cloudflare Worker stub remains available separately through the existing Wrangler development command.
+The inherited `vibe-template` Cloudflare Worker stub remains available at `/starter`.
 
 The repo vendors ASDLC reference material in `.asdlc/` as local guidance instead of recreating it per project. Repo-specific truth lives in `ARCHITECTURE.md`, `specs/`, and `docs/adrs/`: generated code still needs to match those documents, and passing CI alone is not enough.
 
@@ -65,7 +65,7 @@ Each linked `SKILL.md` is the source of truth for boundaries and workflow detail
 
 ## Local Application
 
-Use the pinned Node version with `nvm use`, install the existing dependencies with `npm install`, then run `npm run app` and open `http://127.0.0.1:8787/app/`. Paste one LaTeX file or choose **Try the sample**. The [tutorial](docs/tutorial.md) walks through editing and revising it.
+Use the pinned Node version with `nvm use`, install the existing dependencies with `npm install`, then run `npm start`. Once Wrangler reports that it is ready, open `http://127.0.0.1:8787/`. Paste one LaTeX file or choose **Try the sample**. The [tutorial](docs/tutorial.md) walks through editing and revising it. `npm run app` remains an alias for `npm start`.
 
 The app saves a working copy and revision drafts in this browser's `localStorage`. Copy the source back to your LaTeX file when ready; the app does not write to it or detect external edits. Browser storage can be cleared or unavailable, so keep an independent copy. The browser build writes to ignored `public/assets/`.
 
@@ -80,7 +80,7 @@ Editing works without AI. To enable purposes and proposals, configure a local Op
 - npm is constrained to the supported npm 11 range in `package.json`; local development is expected to use `nvm use`, and CI uses the npm release bundled with the pinned Node setup as long as it satisfies that range.
 - Copy `.dev.vars.example` to `.dev.vars` before running projects that need local secrets.
 - Use repo-pinned CLI tools through `npx`, including `npx wrangler` for Cloudflare-based experiments.
-- Start the stub Worker with `npm run dev`, then open `http://127.0.0.1:8787`.
+- Start the Worker with `npm run dev`, then open the retained stub at `http://127.0.0.1:8787/starter`.
 - Rebuild the generated Tailwind stylesheet manually with `npm run build:css` when needed.
 
 ## Verification
@@ -133,7 +133,9 @@ For cross-repo agent work, tell the agent:
 
 ## Current Starter App
 
-- `GET /` serves a minimal editorial Worker stub with a route index and a primary health-probe link.
+- `GET /` serves the thesis workspace.
+- `GET /starter` serves the retained editorial Worker stub with a route index and a primary health-probe link.
+- `GET /app/` redirects to the workspace at `/` for existing links.
 - `GET /styles.css` serves the generated Tailwind stylesheet.
 - `GET /api/health` serves a JSON health response for smoke tests and tooling.
 

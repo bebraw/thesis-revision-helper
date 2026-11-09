@@ -12,7 +12,7 @@ The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behav
 - Keep the working copy and revision drafts in browser `localStorage` for recovery, with explicit failure handling. This storage is not a backup. Generated analysis remains separate from manuscript text.
 - Student editing transactions change the working copy; model analysis and proposals do not. Keep editing independent of model availability, guard commits against stale or ambiguous targets, and preserve drafts on failure.
 - Connect directly to a configured, credential-free loopback model service and send only necessary source and context. Validate endpoints and model output; treat manuscript and model content as untrusted.
-- Serve the workspace and its static assets from the existing Worker without sending manuscript state through it. Browser modules build to ignored `public/assets/`; the bundled sample is available in the app without a separate launcher.
+- Serve the workspace directly at `/` and retain the starter at `/starter`, without sending manuscript state through the Worker. Browser modules build to ignored `public/assets/`; the bundled sample is available in the app without a separate launcher.
 
 ## Global Rules
 

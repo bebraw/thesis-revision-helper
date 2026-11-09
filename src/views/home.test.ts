@@ -8,7 +8,7 @@ describe("renderHomePage", () => {
 
     expect(html).toContain("Route Index");
     expect(html).toContain("A runnable Cloudflare Worker baseline with a route index");
-    expect(html).toContain("Editorial starter page for developers");
+    expect(html).toContain("Thesis revision workspace");
     expect(html).toContain("JSON health endpoint for tooling and smoke tests");
     expect(html).toContain("Use the health probe to confirm the Worker is live");
     expect(html).toContain('rel="stylesheet" href="/styles.css"');
