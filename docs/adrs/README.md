@@ -27,9 +27,9 @@ ADRs are grouped by lifecycle status:
 
 ## Accepted ADRs
 
-| ADR                                                                     | Status   | Summary                                                                                         |
-| ----------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------- |
-| [ADR-069](./accepted/ADR-069-local-companion-and-cloudflare-backend.md) | Accepted | Use a local companion for student-owned source and a Cloudflare backend for model-related work. |
+| ADR                                                                     | Status     | Summary                                                                                      |
+| ----------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| [ADR-069](./accepted/ADR-069-local-companion-and-cloudflare-backend.md) | Superseded | Use a local companion and Cloudflare backend; replaced by the browser working-copy workflow. |
 
 ## Implemented ADRs
 
@@ -103,9 +103,10 @@ ADRs are grouped by lifecycle status:
 | [ADR-066](./implemented/ADR-066-scope-agent-guidance-to-the-task.md)                   | Implemented | Use capability-based, task-scoped agent guidance and honor existing authorization.                |
 | [ADR-067](./implemented/ADR-067-refresh-reviewed-web-guidance.md)                      | Implemented | Review and pin Modern Web Guidance 0.0.191 while retaining local integration boundaries.          |
 | [ADR-068](./implemented/ADR-068-verify-browser-screenshot-tracing.md)                  | Implemented | Verify screenshot tracing and Linux ARM64 Lighthouse audits before distributing browser pins.     |
-| [ADR-070](./implemented/ADR-070-assume-single-user-source-editing.md)                  | Implemented | Assume no concurrent external source edits while retaining sequential conflict checks.            |
-| [ADR-071](./implemented/ADR-071-accept-local-path-replacement-race.md)                 | Implemented | Accept the local concurrent ancestor-directory replacement race for the current scope.            |
+| [ADR-070](./implemented/ADR-070-assume-single-user-source-editing.md)                  | Superseded  | Assume no concurrent external source edits while retaining sequential conflict checks.            |
+| [ADR-071](./implemented/ADR-071-accept-local-path-replacement-race.md)                 | Superseded  | Accept the local concurrent ancestor-directory replacement race for the current scope.            |
 | [ADR-072](./implemented/ADR-072-make-mutation-diagnostic-only.md)                      | Implemented | Keep mutation testing as an optional diagnostic rather than a quality gate.                       |
+| [ADR-073](./implemented/ADR-073-use-a-browser-working-copy.md)                         | Implemented | Use a browser working copy, copy/paste, and an optional local model.                              |
 
 ## Creating A New ADR
 

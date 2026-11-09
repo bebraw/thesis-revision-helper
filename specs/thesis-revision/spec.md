@@ -4,29 +4,25 @@
 
 ### Context and status
 
-This is the planned implementation baseline, version 0.1 of 6 November 2026. The current repository contains a starter Worker, not this product. The product is a LaTeX writing assistant for students who have already performed their research and developed their main ideas but need help presenting them clearly. It combines a continuously updated outline of manuscript reasoning with a workspace where students write their own revisions, using the original text and an AI proposal as references.
+This is the product baseline, updated 9 November 2026. The product is a LaTeX writing assistant for students who have already performed their research and developed their main ideas but need help presenting them clearly. It combines a continuously updated outline of manuscript reasoning with a workspace where students write their own revisions, using the original text and an AI proposal as references.
 
 The source manuscript is authoritative. AI maintains interpretations and proposes wording; the student determines what to say and commits changes to the manuscript. This distinction must be visible in both the interface and implementation. The product aims to reduce language and presentation barriers while leaving research decisions visible to the student.
 
 ### Current increment: early vertical slice
 
-The first implementation increment is a complete but bounded slice: open a small local LaTeX project, edit one supported prose paragraph, observe an automatically updated purpose, request a proposal, compose a student variant, commit it, and see the outline refresh. The original and proposal are references; the editable student buffer starts from the original, and proposal generation never mutates it or the manuscript. Commit targets the intended unchanged source as one undoable transaction, otherwise preserves the draft and reports a conflict. The slice must preserve source fidelity and student work, keep editing available when analysis fails, reject obsolete analysis, and prevent commits against changed or ambiguous targets. The implementation plan must identify its exact supported subset and checks. Capabilities below that are not necessary for this slice remain deferred to later increments of the first release, not authorized implementation work now. The baseline's source authority, ownership, fidelity, safety, and failure invariants still apply within the slice.
+The first implementation increment is a complete but bounded slice: paste one LaTeX document or load the bundled sample, edit one supported prose paragraph, observe an automatically updated purpose, request a proposal, compose a student variant, commit it to the browser working copy, and copy the result back to the source file. The original and proposal are references; the editable student buffer starts from the original, and proposal generation never mutates it or the working copy. Commit targets the intended unchanged source as one undoable transaction, otherwise preserves the draft and reports a conflict. Keep editing available when analysis fails, reject obsolete analysis, and prevent commits against changed or ambiguous targets. Capabilities below that are not necessary for this slice remain deferred to later increments of the first release.
 
-The current local slice is intentionally narrower than the complete LaTeX contract below. It handles a literal document body, ordinary headings, prose separated by blank lines or `\\par`, common formatting, selected citation/reference commands, and inline math. Unsupported environments, includes, unknown commands, malformed syntax, and display math are diagnosed and are not safe revision targets; includes are not expanded. Mixed-newline files can be read and exported unchanged, but edited writes are rejected until their line endings are resolved. The application initially opens a discovered `.tex` file and allows selecting another in the file list. File changes during a revision are conservatively treated as conflicts rather than remapped. These are slice limitations, not changes to the first-release contract.
+The current slice is intentionally narrower than the full LaTeX contract below. It handles a literal document body, ordinary headings, prose separated by blank lines or `\\par`, common formatting, selected citation/reference commands, and inline math. Unsupported environments, includes, unknown commands, malformed syntax, and display math are diagnosed and are not safe revision targets; includes are not expanded. Changes to the working copy during a revision are conservatively treated as conflicts rather than remapped. Copy/paste does not preserve file bytes or observe changes in an external editor.
 
-The fictional [sample project](../../examples/sample-thesis/main.tex) and its [tutorial](../../docs/tutorial.md) demonstrate the supported single-file workflow without changing this contract. After setup, `npm run tutorial` creates a fresh copy in the operating system's temporary directory, prints its path, and starts the local application; the tracked sample remains unchanged.
-
-**Single-user boundary:** the user has explicitly removed concurrent source editing from the requirement. Assume no other process modifies a manuscript while this application is operating on it. Version checks detect external changes between operations, but are not an atomic compare-and-replace against an uncooperative concurrent writer. See [ADR-070](../../docs/adrs/implemented/ADR-070-assume-single-user-source-editing.md).
-
-**Accepted path limitation:** a local actor able to replace a project directory during access can race path validation and potentially redirect access outside the project. This particular limitation is accepted for the current scope; it does not remove the requirements to reject ordinary traversal, visible symbolic links, and multiply linked files, or to treat source and model output as untrusted. See [ADR-071](../../docs/adrs/implemented/ADR-071-accept-local-path-replacement-race.md).
+The fictional [sample](../../examples/sample-thesis/main.tex) and its [tutorial](../../docs/tutorial.md) demonstrate the single-file workflow. Loading the sample must not silently replace an existing working copy.
 
 ### Architecture
 
-- **Capability source root and composition root:** `src/thesis/` owns parsing, source encoding, revision, and model/analysis boundaries; `src/browser/` owns the workspace; `local/companion.mjs` composes the local service with `local/project.mjs`. The starter Worker remains separate.
-- **Entry points:** A single-user browser interface and local companion service; transport and application framework remain open.
-- **State authority:** UTF-8 LaTeX source files and ordinary editor transactions; generated analysis, history, student intent, and revision drafts live separately in application-managed project data.
+- **Capability source root and composition root:** `src/thesis/` owns parsing, revision, and analysis boundaries; `src/browser/` composes the workspace, storage, and model adapters. The Worker serves the browser app and retains its starter routes.
+- **Entry points:** A single-user browser interface and optional local model service.
+- **State authority:** The student's external LaTeX file is updated by the student. The app edits a separate browser working copy; generated analysis and revision drafts remain distinct from source text.
 - **Public contracts:** The operations, data distinctions, source and revision guards, and progress events defined below.
-- **Dependency direction:** Keep editor, parser, storage, and model adapters replaceable. The local companion owns project access; a Cloudflare model/backend component is planned. The precise integration and authentication remain open. Credentials must remain out of browser state, exports, and logs; the baseline requires provider credentials in the local service. See [ADR-069](../../docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md) for the architectural decision and [ARCHITECTURE.md](../../ARCHITECTURE.md) for cross-cutting constraints.
+- **Dependency direction:** Keep editor, parser, storage, and model adapters replaceable. The browser connects directly to a credential-free local model. See [ADR-073](../../docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md) and [ARCHITECTURE.md](../../ARCHITECTURE.md).
 
 ### Outside the first release
 
@@ -42,7 +38,7 @@ Do not confuse AI interpretation with source authority or student intent. Do not
 
 Students write and revise using LaTeX syntax. A hierarchical outline automatically describes the purpose of each section and prose paragraph as the manuscript changes and helps inspect progression and reasoning beyond headings and topic summaries. Students compare an original passage and AI proposal, then compose their own version separately. Analysis never automatically changes the manuscript, and proposal generation never inserts a proposal into a student revision. LaTeX commands, citations, references, mathematics, and source locations survive the workflow. Students can continue writing when parsing or analysis is incomplete or unavailable.
 
-The first release defaults are a single-user browser interface with a local companion; opening a local directory or importing into a managed local directory; UTF-8 source files and ordinary editor transactions as authority; separate application-managed project data; one prose paragraph per language or clarity proposal with surrounding paragraph and section context; paragraph and section purposes plus section flow observations; English feedback with optional Finnish author notes; and a replaceable model provider adapter with application-validated structured responses. No specific model, framework, or LaTeX parser package is required. Core contracts are language independent; TypeScript shapes below are illustrative.
+The first release defaults are a single-user browser interface; one pasted LaTeX document at a time; browser-stored working data with explicit copy-back to the student's file; one prose paragraph per language or clarity proposal with surrounding paragraph and section context; paragraph and section purposes plus section flow observations; English feedback with optional Finnish author notes; and a replaceable local model adapter with application-validated structured responses. No specific model, framework, or LaTeX parser package is required. Core contracts are language independent; TypeScript shapes below are illustrative.
 
 ### Student ownership and editing
 
@@ -52,9 +48,9 @@ Use specific descriptions such as “Explains why the benchmark represents the t
 
 #### Open and analyse
 
-1. Open a directory or import project files; select the root document when several candidates exist.
-2. Display the file tree and root document in a LaTeX source editor.
-3. Parse the supported include graph and immediately show heading and block structure.
+1. Paste one document or load the bundled sample, protecting any existing working copy from silent replacement.
+2. Display the working copy in a LaTeX source editor and offer a way to copy it back.
+3. Parse the document and immediately show supported heading and block structure; diagnose includes rather than resolving them.
 4. Start background purpose analysis with explicit pending, current, stale, unclear, and failed states.
 5. Allow source editing throughout analysis and persist student changes independently of model availability.
 
@@ -81,7 +77,7 @@ Revision buffers are saved as drafts while students work; they modify source onl
 
 ### Interface
 
-The manuscript workspace provides a file tree, LaTeX source editor, and collapsible outline. Show local save state separately from analysis state. Support source syntax highlighting, keyboard navigation, and ordinary undo and redo. An outline-only view allows reading the argument without full prose.
+The manuscript workspace provides a LaTeX source editor and collapsible outline. Show browser save state separately from analysis state and make the need to copy changes back clear. Support source syntax highlighting, keyboard navigation, and ordinary undo and redo. An outline-only view allows reading the argument without full prose.
 
 Each section shows its actual source heading and inferred purpose. Each prose paragraph shows a short inferred purpose and can expand to a key point, relationship to the previous paragraph, and relevant feedback. Non-prose blocks remain navigable and are not mislabelled as prose. Offer at most a few prioritised flow observations per section; each links to its source blocks and explains the concern. Examples are repeated reasoning, a concept used before explanation, a conclusion before support, or an unclear transition. Apparent repetition can be intentional and feedback must allow that interpretation.
 
@@ -104,16 +100,16 @@ Observed purpose is automatically generated from the current manuscript; intende
 | Lists              | Represent list items as subordinate blocks, not unrelated flattened paragraphs.                                                                                |
 | Figures and tables | Represent as non-prose blocks; use available captions and labels as context without claiming to interpret image content.                                       |
 | Code and verbatim  | Treat content as opaque, retain navigation and source spans, and do not analyse it as thesis prose.                                                            |
-| Included files     | Resolve literal root-relative input and include paths in source order, including omitted `.tex` extensions.                                                    |
+| Included files     | Preserve and diagnose include commands; the pasted-document workflow does not resolve other files.                                                             |
 | Unknown commands   | Preserve exact source, expose text only where a configured command signature permits it, and report uncertainty where interpretation is affected.              |
 
 A section command named `paragraph` is a heading, distinct from a prose paragraph. Do not use regular expressions alone to establish nested syntax and block boundaries. Hide a tolerant syntax parser behind a documented adapter and test it against fixtures.
 
-Restrict include resolution to the selected project. Detect missing files, cycles, repeated inclusion, dynamic paths, conditional include behaviour, and unsupported include mechanisms. Preserve constructs and show diagnostic placeholders instead of silently claiming a complete outline. The first release semantically expands static, non-repeated input and include paths; repeated inclusions and complex conditional or macro-generated structures are flagged as partially supported. Bibliography files and other assets remain unchanged. Bibliography metadata may label known citation keys but is not evidence of a cited claim's correctness. Never execute arbitrary macros, shell commands, package code, or embedded instructions, or compile documents during import or analysis.
+The app has no access to included files, bibliography files, or assets; preserve include commands and show diagnostics instead of claiming a complete outline. Never execute arbitrary macros, shell commands, package code, or embedded instructions, or compile documents during analysis.
 
 When braces, environments, or commands are temporarily incomplete, preserve editing and saving, recover unaffected blocks where possible, and retain the last successful annotations visibly marked stale or parse-incomplete. Do not invent an interpretation of malformed source. Reconcile boundaries and reanalyse when source becomes interpretable.
 
-Import and export preserve exact bytes of unedited files, including assets. Support UTF-8 with or without a byte-order mark and retain each file's original newline convention. Reject unsupported encodings with a useful message rather than replacing characters. The editor may use LF-normalised text internally; record the conversion and restore the file's convention on write. Source hashes use canonical LF-normalised strings encoded as UTF-8. Editor offsets use zero-based UTF-16 code units with exclusive ends. Maintain conversion explicitly; displayed line numbers are navigation aids, not durable identities.
+Copy/paste transfers text rather than file bytes. Do not promise preservation of byte-order marks, encodings, newline conventions, or unrelated assets. Preserve the pasted LaTeX text and protected spans in the working copy. Source hashes use canonical LF-normalised strings encoded as UTF-8. Editor offsets use zero-based UTF-16 code units with exclusive ends. Displayed line numbers are navigation aids, not durable identities.
 
 ### Automatic outline analysis
 
@@ -163,19 +159,19 @@ Capture the original source slice, its anchor, and exact hash when opening a rev
 
 ### Component responsibilities
 
-| Component           | Responsibilities                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| Source editor       | LaTeX editing, selection, transactions, source maps, undo and redo.                         |
-| Project service     | Project access, include resolution, file versions, atomic saves, import and export.         |
-| Parser adapter      | Tolerant syntax tree, blocks, protected spans, source mapping, diagnostics.                 |
-| Identity reconciler | Stable block IDs, move detection, split and merge lineage.                                  |
-| Analysis scheduler  | Dependency tracking, debounce, cache, request budgets, retries, obsolete-result rejection.  |
-| Model gateway       | Provider credentials, request formatting, response parsing, cancellation, usage accounting. |
-| Response validator  | Schema validation, source evidence checks, protected syntax checks, review warnings.        |
-| Outline store       | Generated purposes, issues, states, history, optional author intent.                        |
-| Revision service    | Original snapshots, proposals, student drafts, guarded commits, conflicts.                  |
+| Component           | Responsibilities                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| Source editor       | LaTeX editing, selection, transactions, source maps, undo and redo.                        |
+| Browser store       | Working-copy and draft recovery, storage failures, replacement guards.                     |
+| Parser adapter      | Tolerant syntax tree, blocks, protected spans, source mapping, diagnostics.                |
+| Identity reconciler | Stable block IDs, move detection, split and merge lineage.                                 |
+| Analysis scheduler  | Dependency tracking, debounce, cache, request budgets, retries, obsolete-result rejection. |
+| Model gateway       | Local endpoint validation, request formatting, response parsing, cancellation.             |
+| Response validator  | Schema validation, source evidence checks, protected syntax checks, review warnings.       |
+| Outline store       | Generated purposes, issues, states, history, optional author intent.                       |
+| Revision service    | Original snapshots, proposals, student drafts, guarded commits, conflicts.                 |
 
-Keep model credentials in the local service rather than the browser. A structured-response adapter must work with native provider schemas or plain text: parse and validate the same application schema in both cases.
+Do not persist model credentials. A structured-response adapter must parse and validate the application schema before using model output.
 
 ### Data contracts
 
@@ -276,31 +272,31 @@ An anchor's source hash covers its exact canonical source slice, not the whole f
 
 Internal service interfaces or an equivalent local API expose these operations. Transport is replaceable; state changes and guards are required.
 
-| Operation         | Main input                                              | Required result                                |
-| ----------------- | ------------------------------------------------------- | ---------------------------------------------- |
-| OpenProject       | Directory or imported project, optional root            | Project identity, file inventory, diagnostics. |
-| UpdateSource      | File ID, expected file version, editor transaction      | New version and mapped anchors, or conflict.   |
-| GetOutline        | Project and analysis cursor                             | Hierarchy, annotations, issues, freshness.     |
-| SetAuthorIntent   | Block ID and author text                                | Stored intent and scheduled analysis.          |
-| StartRevision     | Block ID, mode, current selection version               | Immutable base snapshot and student draft.     |
-| GenerateProposal  | Session ID, selected context digest                     | Proposal record or explicit failed response.   |
-| SaveRevisionDraft | Session ID, draft version, student text                 | Updated draft without source mutation.         |
-| CommitRevision    | Session ID, expected target hash, student draft version | Undoable source transaction or conflict.       |
-| ExportProject     | Project ID, include-annotations option                  | LaTeX project with source fidelity preserved.  |
+| Operation         | Main input                                              | Required result                              |
+| ----------------- | ------------------------------------------------------- | -------------------------------------------- |
+| OpenDocument      | Pasted document or bundled sample                       | Browser working copy and diagnostics.        |
+| UpdateSource      | File ID, expected file version, editor transaction      | New version and mapped anchors, or conflict. |
+| GetOutline        | Project and analysis cursor                             | Hierarchy, annotations, issues, freshness.   |
+| SetAuthorIntent   | Block ID and author text                                | Stored intent and scheduled analysis.        |
+| StartRevision     | Block ID, mode, current selection version               | Immutable base snapshot and student draft.   |
+| GenerateProposal  | Session ID, selected context digest                     | Proposal record or explicit failed response. |
+| SaveRevisionDraft | Session ID, draft version, student text                 | Updated draft without source mutation.       |
+| CommitRevision    | Session ID, expected target hash, student draft version | Undoable source transaction or conflict.     |
+| CopyDocument      | Current working copy                                    | Text available for copying back to the file. |
 
 Progress events carry project, block, request, and version IDs. A cancelled request may still finish at the provider; result publication remains subject to dependency validation. Model-generated identifiers must refer to allowed request IDs and cannot create arbitrary file paths or source targets.
 
 ### Storage and recovery
 
-Store generated outlines, optional intended purposes, proposal history, revision drafts, and diagnostics separately from source. Do not inject metadata comments into the manuscript. Offer optional portable annotations export alongside the LaTeX project; ordinary compilation must not require it.
+Store generated outlines, optional intended purposes, proposal history, revision drafts, and diagnostics separately from source. Do not inject metadata comments into the manuscript.
 
-Autosave source edits and revision drafts independently using atomic file replacement or an equivalent recoverable journal. Retain a last-saved snapshot and clearly indicate unsaved state. After restart recover pending student drafts and mark interrupted analysis stale or retryable. When external tooling changes a source file between application operations, compare it with last loaded and saved versions; reload clean buffers or present a conflict for dirty ones without overwriting detected external edits. Simultaneous edits are outside the single-user boundary. Export identifies unsaved or conflicted files and offers the current coherent saved snapshot.
+Autosave the working copy and revision drafts to browser storage and clearly indicate failures. Keep unsaved editor text available in memory if persistence fails. After reload recover saved drafts and mark interrupted analysis stale or retryable. Browser data may be cleared or unavailable, so it is not a backup; the student copies the result to the external file. The app cannot detect or reconcile external file edits.
 
 ### Model context and data handling
 
-Send only selected source and necessary surrounding context. Show which configured provider receives manuscript text. Keep credentials out of browser state, project exports, and logs. The local service binds to loopback and validates allowed request origins; reject imported paths that escape the project directory, subject to the accepted concurrent path-replacement limitation above.
+Send only selected source and necessary surrounding context to the configured loopback model service. Show the model connection, validate the endpoint, and do not store credentials or manuscript text in logs. A compatible model service must allow browser requests from the app's origin.
 
-Treat manuscript prose, comments, included files, bibliography text, and model output as untrusted content. They cannot change application instructions, trigger commands, access unrelated files, or grant network access. Escape rendered output and validate structured payloads before display or use. Retain useful request metadata and error categories without logging manuscript text by default. Let students clear generated analysis and history without deleting thesis source. Deleting an imported managed project has an explicit scope distinct from clearing annotations; never delete an externally opened source directory as a side effect.
+Treat manuscript prose, comments, and model output as untrusted content. They cannot change application instructions, trigger commands, access unrelated files, or grant network access. Escape rendered output and validate structured payloads before display or use. Retain useful request metadata and error categories without logging manuscript text by default. Let students clear generated analysis and history without deleting thesis source.
 
 ### Optional writing resources
 
@@ -326,7 +322,7 @@ These are initial targets to validate on the selected implementation, not measur
 | Semantic dispatch   | Begins after the configured 1,500 ms idle interval when analysis is available and within budget.                      |
 | Semantic completion | Target p95 below 15 seconds for a small paragraph batch with the selected provider; show pending status throughout.   |
 | Durability          | Save source and draft changes within 1 second of idle when storage is available; report failures explicitly.          |
-| Reference project   | Exercise 100,000 prose words, 100 source files, and 2,000 prose blocks; record initial-analysis cost and latency.     |
+| Reference document  | Exercise a representative single document and record initial-analysis cost and latency.                               |
 
 Typing and navigation must remain useful before full initial analysis completes. A provider missing the latency target must not cause false current states or lost work.
 
@@ -336,12 +332,12 @@ The first release is complete only when all scenarios below are demonstrated. Th
 
 | ID  | Scenario                                                                      | Acceptance                                                                                                                                              |
 | --- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A01 | Open and export an unchanged project                                          | All unedited files and assets are byte-identical, including newline conventions and UTF-8 marks.                                                        |
+| A01 | Paste and copy an unchanged document                                          | The working-copy text can be copied back without intentional source changes.                                                                            |
 | A02 | Parse ordinary headings and prose                                             | Correct hierarchy, including starred headings, optional titles, explicit paragraphs, and the paragraph heading command.                                 |
 | A03 | Parse comments and line breaks                                                | Comments do not become outline prose; escaped percent signs remain text; ordinary line wraps and line-break commands do not create spurious paragraphs. |
 | A04 | Encounter nested formatting, citations, and math                              | Extract usable context while retaining exact source spans and protected payloads.                                                                       |
 | A05 | Encounter lists, floats, and verbatim                                         | Navigate correctly; keep non-prose blocks distinct; avoid treating code as an argument.                                                                 |
-| A06 | Resolve includes                                                              | Static includes appear in source order; cycles, missing paths, repeated inclusions, and unsupported structures produce explicit diagnostics.            |
+| A06 | Encounter includes                                                            | Include commands are preserved and identified as unsupported; no missing file is silently treated as analysed.                                          |
 | A07 | Temporarily break a command or environment                                    | Editing and saving continue; unaffected structure survives; affected annotations remain visibly incomplete or stale.                                    |
 | A08 | Edit a paragraph                                                              | Its observed purpose updates after idle without student confirmation; dependent section analysis refreshes.                                             |
 | A09 | Edit an unrelated section                                                     | Current results with unchanged dependencies are reused rather than resending the whole thesis.                                                          |
@@ -356,13 +352,13 @@ The first release is complete only when all scenarios below are demonstrated. Th
 | A18 | Commit and undo a revision                                                    | Apply the exact student buffer to the intended span as one transaction; undo restores the previous source.                                              |
 | A19 | Use non-ASCII text and emoji                                                  | UTF-16 editor offsets map correctly to the intended source without corrupting adjacent text.                                                            |
 | A20 | Provider returns malformed output, times out, or exceeds budget               | Preserve manuscript and drafts; show an actionable analysis state; reject invalid payloads.                                                             |
-| A21 | Restart or detect an external file edit between operations                    | Recover saved drafts and source state; show conflicts rather than overwriting detected external changes.                                                |
+| A21 | Reload or lose browser storage                                                | Recover saved drafts and source when available; report save failures and keep unsaved text available for copying.                                       |
 | A22 | Read the outline without prose                                                | Show specific contributions in source order; unclear roles remain explicit; headings alone are insufficient.                                            |
 | A23 | Receive a structural observation                                              | Link it to real source blocks and verified excerpts; permit dismissal and retain meaningful dismissal state.                                            |
 | A24 | Use keyboard and a narrow screen                                              | Navigate outline, inspect both references, edit the student variant, and commit without clipped essential controls.                                     |
 | A25 | Import adversarial manuscript content                                         | No instruction in source or model output executes commands, escapes paths, accesses unrelated files, or bypasses source guards.                         |
 
-Fixtures must include an implementation-oriented CS thesis structure, a literature-review passage, a results-and-limitations passage, citation-heavy prose, mathematical notation, incomplete syntax, and multi-file source.
+Fixtures must include an implementation-oriented CS thesis structure, a literature-review passage, a results-and-limitations passage, citation-heavy prose, mathematical notation, incomplete syntax, and unsupported include commands.
 
 ### Implementation sequence
 
@@ -370,7 +366,7 @@ The requested early vertical slice takes priority across these stages; it is the
 
 | Stage | Deliverable                                      | Exit condition                                                                                                         |
 | ----- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| 1     | Local project editing and source fidelity        | Import, guarded saves, export, undo, and external-change handling work without AI.                                     |
+| 1     | Browser document editing and recovery            | Paste, guarded browser saves, copy-back, undo, and recovery work without AI.                                           |
 | 2     | Tolerant parser and stable block model           | Supported LaTeX fixtures produce correct navigation, protected spans, and identity reconciliation.                     |
 | 3     | Live semantic outline                            | Background analysis updates purposes, tracks dependencies, and rejects obsolete results.                               |
 | 4     | Student revision workspace                       | Immutable original and proposal, independently saved student draft, comparison, guarded commit, and conflict recovery. |

@@ -1,48 +1,35 @@
-# Try the sample project
+# Try the sample document
 
-This walkthrough uses a fictional thesis about a local research-note index. You can try source editing and the revision workspace without an AI provider. A configured Cloudflare Workers AI model adds paragraph purposes and proposals.
+This walkthrough uses a fictional thesis about a local research-note index. You can edit the source and use the revision workspace without a model. A local OpenAI-compatible model can add paragraph purposes and proposals.
 
-## Get ready
+## Open the sample
 
 From the repository directory, use the pinned Node version and install the existing dependencies if needed:
 
 ```sh
 nvm use
 npm install
+npm run app
 ```
 
-The tutorial command creates a temporary copy of the [sample project](../examples/sample-thesis/main.tex) and prints its directory. The app saves directly to that copy, keeping the tracked example unchanged. Temporary files may be removed by the operating system; copy the project somewhere permanent if you want to keep your changes.
+Open `http://127.0.0.1:8787/app/` and select **Try the sample**. If a working copy is already open, confirm its replacement only after copying any text you want to keep. The tracked [sample](../examples/sample-thesis/main.tex) is not changed.
 
-## Optional: enable AI feedback
+To work on your own file, copy its LaTeX text from your editor, paste it into **Paste a LaTeX document**, and select **Open pasted text**. The app works on one document at a time and does not read included files.
 
-For live purposes and proposals, configure a Cloudflare account ID, an API token with Workers AI access, and a model that supports JSON mode. For example, in the same terminal:
+## Optional: connect a local model
 
-```sh
-export CLOUDFLARE_ACCOUNT_ID="your-account-id"
-export CLOUDFLARE_AI_MODEL="@cf/meta/llama-3.1-8b-instruct"
-printf 'Cloudflare API token: '
-read -rs CLOUDFLARE_API_TOKEN
-printf '\n'
-export CLOUDFLARE_API_TOKEN
-```
+Start a credential-free OpenAI-compatible model service on your computer and configure its endpoint and model name under **AI connection**. The endpoint must allow browser requests from the app's origin; consult the service's CORS configuration if it cannot connect. Selected passages and nearby context are sent directly to that service. You can skip this step and still edit the document and save revision drafts.
 
-The token entry is hidden and is not written into the project. See Cloudflare's [Workers AI REST API guide](https://developers.cloudflare.com/workers-ai/get-started/rest-api/) for account and token setup and its [JSON mode documentation](https://developers.cloudflare.com/workers-ai/features/json-mode/) for supported models. The app displays the configured provider before opening a project. When analysis or a proposal is requested, Cloudflare receives the selected passage and nearby context.
+## Revise
 
-You can skip this step: the editor and student revision drafts still work, and analysis and proposal requests will report that the model is unavailable. Restart the app after changing model configuration.
+1. Select a paragraph in the outline. If a model is connected, its purpose appears after a short pause and is labelled as an AI interpretation.
+2. Select **Language** or **Clarity**. The original is a read-only reference, and **Your revision** starts with the original text.
+3. If a model is connected, select **Generate proposal** to see **One possible revision**. It is a separate reference and does not change your draft or source. Proposals that fail preservation checks are rejected.
+4. Edit **Your revision**, then select **Use my revision**. Review and confirm any warnings if they appear. The working copy now contains your text. **Undo revision** restores the passage.
+5. To try draft recovery, open another revision, edit it, and select **Return to manuscript**. Reload the page and use **Saved drafts** to restore it.
 
-## Open and revise
+## Copy your work back
 
-1. In the same terminal, run `npm run tutorial`. It prints the directory of a fresh sample copy and starts the app. Open `http://127.0.0.1:8789` in your browser.
-2. Paste the printed **directory path**, not the `main.tex` filename, into **Project directory**, and select **Open project**. The file tree and source editor show the copied project.
-3. In the outline, select **Paragraph 4**, beginning “The search was making it easier”. The selection moves to that passage in the source editor. If AI is configured, its purpose appears after a short pause and is labelled as an AI interpretation. The current slice analyses the selected paragraph; it does not yet produce the complete hierarchical outline described in the product spec.
-4. Select **Language** or **Clarity**. The original is a read-only reference, and **Your revision** starts with the original text.
-5. If AI is configured, select **Generate proposal** to see **One possible revision**. It is a separate reference and does not change your draft or the source. A model response that fails preservation checks is rejected; you can request another proposal or continue on your own.
-6. Edit **Your revision**. For example, replace the first sentence with “The search helped the researcher find the notes.” Keep the following sentence and its `\emph{...}` command. You can also write a different version.
-7. Select **Use my revision**. Review and confirm any warnings if they appear. The source editor now contains your text. Select **Undo revision** to restore the passage.
-8. To try draft recovery, open another revision, edit it, and select **Return to manuscript**. The draft is saved separately; use **Saved drafts** to restore it for the same file.
+Select **Copy source** and paste the result into your own LaTeX file. If clipboard access is unavailable, the app selects the source so you can copy it using your keyboard. The app cannot see or update the file in your editor and cannot detect changes made there.
 
-Try selecting an Evaluation paragraph too: it contains inline mathematics and a reference command. These are useful for seeing how proposals preserve LaTeX syntax. Do not edit the same source files in another application at the same time; this is a single-user workflow.
-
-## Finish
-
-Stop the local service with `Ctrl+C` in its terminal. The copied `main.tex` contains your saved edits; the original under `examples/sample-thesis/` is unchanged. Revision drafts are stored separately under `~/Library/Application Support/Thesis Revision Helper/`.
+Your working copy and drafts are stored in this browser's `localStorage` when available. Browser data can be cleared or blocked, so keep your file or another independent copy as a backup. Copy/paste transfers text and does not guarantee byte-identical file encoding or line endings.

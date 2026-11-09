@@ -1,4 +1,7 @@
 import { createScrollSync } from "./scroll-sync.js";
+import { createBrowserBackend, type BrowserModel } from "./browser-backend.js";
+import { createLocalModel } from "./local-model.js";
+import { sampleThesis } from "./sample-thesis.js";
 
 export type WorkspaceRequest = (path: string, body?: Record<string, unknown>) => Promise<unknown>;
 
@@ -145,6 +148,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     review: null,
   };
   let editEpoch = 0;
+  let analysisSequence = 0;
   let composing = false;
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   let analysisTimer: ReturnType<typeof setTimeout> | undefined;
@@ -199,13 +203,13 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
     });
     notify();
   }
-  async function open(path: string): Promise<void> {
+  async function openDocument(body: Record<string, unknown>): Promise<void> {
     if (state.busy) return;
     state.busy = true;
     notify();
     try {
       if (!(await flushSource()) || !(await flushDraft())) return;
-      const data = documentData(await request("/api/open", { path }));
+      const data = documentData(await request("/api/open", body));
       state.revision = null;
       state.review = null;
       state.savedRevisions = [];
@@ -227,6 +231,8 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
       notify();
     }
   }
+  const open = (path: string): Promise<void> => openDocument({ path });
+  const openText = (text?: string): Promise<void> => openDocument(text === undefined ? {} : { text });
   async function openFile(path: string): Promise<void> {
     if (state.busy) return;
     state.busy = true;
@@ -326,7 +332,8 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
   }
   async function analyse(): Promise<void> {
     clearTimeout(analysisTimer);
-    if (composing || !(await flushSource())) return;
+    const sequence = ++analysisSequence;
+    if (composing || !(await flushSource()) || sequence !== analysisSequence) return;
     const data = state.document,
       paragraph = selected(),
       epoch = editEpoch;
@@ -350,6 +357,7 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
       const purpose = response.purpose === null ? null : string(response.purpose);
       const version = string(response.version);
       if (
+        sequence !== analysisSequence ||
         epoch !== editEpoch ||
         state.document?.projectId !== data.projectId ||
         state.document.path !== data.path ||
@@ -360,10 +368,17 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
       state.purpose = purpose;
       state.analysisStatus = purpose ? "Current · AI interpretation" : "Unclear · AI interpretation";
     } catch (error) {
-      if (epoch !== editEpoch) return;
+      if (sequence !== analysisSequence || epoch !== editEpoch) return;
       state.analysisStatus = "Analysis unavailable";
       state.error = message(error);
     }
+    notify();
+  }
+  function invalidateAnalysis(): void {
+    analysisSequence += 1;
+    clearTimeout(analysisTimer);
+    state.purpose = null;
+    state.analysisStatus = "Analysis unavailable";
     notify();
   }
   async function startRevision(mode: "language" | "clarity"): Promise<void> {
@@ -632,10 +647,12 @@ export function createWorkspace(request: WorkspaceRequest, changed: () => void) 
   return {
     state,
     open,
+    openText,
     openFile,
     updateSource,
     selectParagraph,
     analyse,
+    invalidateAnalysis,
     startRevision,
     updateDraft,
     generateProposal,
@@ -669,47 +686,13 @@ function editor(id: string): HTMLTextAreaElement {
   return node;
 }
 
-interface Session {
-  token: string;
-  provider: { name: string; model: string } | null;
-}
-async function loadSession(): Promise<Session> {
-  const response = await fetch("/api/session", { credentials: "same-origin" });
-  if (!response.ok) throw new Error("The local service is unavailable.");
-  const data = object(await response.json());
-  const provider = data.provider === null ? null : object(data.provider);
-  return { token: string(data.token), provider: provider ? { name: string(provider.name), model: string(provider.model) } : null };
-}
-async function browserRequest(session: Promise<Session>, path: string, body?: Record<string, unknown>): Promise<unknown> {
-  const token = (await session).token;
-  const response = await fetch(
-    path,
-    body === undefined
-      ? { credentials: "same-origin" }
-      : {
-          method: "POST",
-          credentials: "same-origin",
-          headers: { "Content-Type": "application/json", "X-Session-Token": token },
-          body: JSON.stringify(body),
-        },
-  );
-  const data: unknown = await response.json();
-  if (!response.ok) {
-    const error = object(data).error;
-    throw new Error(typeof error === "string" ? error : "The local service could not complete the request.");
-  }
-  return data;
-}
-
 function mountWorkspace(): void {
   const source = editor("source");
   const draft = editor("draft");
   const openForm = element("open-form");
-  const files = element("files");
   const outline = element("outline");
   const recovery = element("recovery");
   let visibleProposal = true;
-  let treeKey = "";
   let outlineKey = "";
   let recoveryKey = "";
   let composing = false;
@@ -725,8 +708,32 @@ function mountWorkspace(): void {
     visibleButton?.setAttribute("aria-current", "location");
   }
   const scrollSync = createScrollSync(source, showVisibleParagraph);
-  const session = loadSession();
-  const workspace = createWorkspace((path, body) => browserRequest(session, path, body), render);
+  let model: BrowserModel | null = null;
+  // Until storage is checked, conservatively treat it as containing recoverable work.
+  let hasSavedDocument = true;
+  let storage: Storage;
+  try {
+    storage = window.localStorage;
+  } catch {
+    element("error").textContent = "Browser storage is unavailable. Enable it to open a working copy.";
+    return;
+  }
+  const request = createBrowserBackend({ storage, getModel: () => model });
+  const workspace = createWorkspace(request, render);
+  try {
+    const savedSettings = storage.getItem("thesis-revision-helper.model.v1");
+    if (savedSettings) {
+      const settings = object(JSON.parse(savedSettings));
+      const endpoint = string(settings.endpoint);
+      const modelName = string(settings.model);
+      model = createLocalModel({ endpoint, model: modelName });
+      input("model-endpoint").value = endpoint;
+      input("model-name").value = modelName;
+      element("provider-status").textContent = `Local model · ${modelName}`;
+    }
+  } catch {
+    element("provider-status").textContent = "Saved model settings are unavailable. Configure the connection again.";
+  }
   function syncScrollTracking(): void {
     const state = workspace.state;
     if (state.document && !state.dirty && !composing && state.text === state.document.text && source.value === state.text) {
@@ -742,13 +749,13 @@ function mountWorkspace(): void {
       showVisibleParagraph(null);
     }
   }
-  void session
-    .then((data) => {
-      element("provider-status").textContent = data.provider
-        ? `${data.provider.name} · ${data.provider.model}`
-        : "No model configured · local editing available";
-      input("project-path").disabled = false;
-      element("open-project").removeAttribute("disabled");
+  void request("/api/session")
+    .then(async (response) => {
+      hasSavedDocument = object(response).hasDocument === true;
+      if (hasSavedDocument) {
+        await workspace.openText();
+        if (workspace.state.document) element("document-input").removeAttribute("open");
+      }
     })
     .catch((error: unknown) => {
       element("provider-status").textContent = message(error);
@@ -757,7 +764,7 @@ function mountWorkspace(): void {
     const state = workspace.state;
     element("empty").hidden = state.document !== null;
     element("workspace").hidden = state.document === null;
-    element("project-label").textContent = state.document?.project ?? "No project open";
+    element("project-label").textContent = state.document ? "Browser working copy" : "No document open";
     element("file-label").textContent = state.document?.path ?? "";
     element("save-status").textContent = state.saveStatus;
     element("analysis-status").textContent = state.analysisStatus;
@@ -767,22 +774,6 @@ function mountWorkspace(): void {
     source.disabled = state.busy || !state.document;
     if (source.value !== state.text) source.value = state.text;
     syncScrollTracking();
-    const newTreeKey = JSON.stringify([state.document?.files, state.document?.path]);
-    if (treeKey !== newTreeKey) {
-      treeKey = newTreeKey;
-      files.replaceChildren();
-      for (const path of state.document?.files ?? []) {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "file-link";
-        button.textContent = path;
-        button.setAttribute("aria-current", path === state.document?.path ? "page" : "false");
-        button.addEventListener("click", () => {
-          void workspace.openFile(path);
-        });
-        files.append(button);
-      }
-    }
     const newOutlineKey = JSON.stringify([state.document?.paragraphs, state.selected, state.purpose, state.analysisStatus, state.dirty]);
     if (outlineKey !== newOutlineKey) {
       outlineKey = newOutlineKey;
@@ -849,9 +840,69 @@ function mountWorkspace(): void {
     element("undo").toggleAttribute("disabled", !state.undoAvailable || state.busy);
     element("undo").setAttribute("data-ready", String(state.undoAvailable));
   }
+  async function openSource(text: string): Promise<void> {
+    if (
+      (workspace.state.document || hasSavedDocument) &&
+      !window.confirm("Replace your browser working copy and its saved drafts? Copy your source first if you want to keep it.")
+    )
+      return;
+    await workspace.openText(text);
+    if (workspace.state.document?.text === text) {
+      hasSavedDocument = true;
+      editor("pasted-source").value = "";
+      element("document-input").removeAttribute("open");
+    }
+  }
   openForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    void workspace.open(input("project-path").value.trim());
+    void openSource(editor("pasted-source").value);
+  });
+  element("load-sample").addEventListener("click", () => {
+    void openSource(sampleThesis);
+  });
+  element("copy-source").addEventListener("click", () => {
+    void (async () => {
+      try {
+        await navigator.clipboard.writeText(source.value);
+        workspace.state.notice = "Source copied. Paste it into your LaTeX file.";
+      } catch {
+        source.focus();
+        source.select();
+        workspace.state.notice = "Source selected. Copy it with your keyboard and paste it into your LaTeX file.";
+      }
+      render();
+    })();
+  });
+  element("model-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    try {
+      const endpoint = input("model-endpoint").value.trim();
+      const modelName = input("model-name").value.trim();
+      model = createLocalModel({ endpoint, model: modelName });
+      element("provider-status").textContent = `Local model · ${modelName}`;
+      workspace.state.error = "";
+      try {
+        window.localStorage.setItem("thesis-revision-helper.model.v1", JSON.stringify({ endpoint, model: modelName }));
+      } catch {
+        workspace.state.error = "Model settings could not be saved; they will need to be entered again.";
+      }
+      render();
+      void workspace.analyse();
+    } catch (error) {
+      workspace.state.error = message(error);
+      render();
+    }
+  });
+  element("disconnect-model").addEventListener("click", () => {
+    model = null;
+    workspace.invalidateAnalysis();
+    element("provider-status").textContent = "No model configured · local editing available";
+    try {
+      window.localStorage.removeItem("thesis-revision-helper.model.v1");
+    } catch {
+      workspace.state.error = "Model settings could not be removed from browser storage.";
+    }
+    render();
   });
   source.addEventListener("input", () => workspace.updateSource(source.value, source.selectionStart));
   source.addEventListener("compositionstart", () => {

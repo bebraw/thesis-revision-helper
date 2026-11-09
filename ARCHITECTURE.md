@@ -6,14 +6,13 @@ Use this file for global constraints. Use feature specs under `specs/` for domai
 
 ## Product Architecture
 
-The following constraints describe the accepted product architecture; the existing Worker stub does not yet implement it. [ADR-069](docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md) records the decision and alternatives. The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behavior and current increment.
+The [thesis revision spec](specs/thesis-revision/spec.md) owns the product behavior and current increment. [ADR-073](docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md) records the browser working-copy decision.
 
-- Use a single-user browser interface with a local companion service for access to the student's LaTeX project and a Cloudflare backend for model-related work. Keep their interfaces replaceable; framework, provider, parser, storage implementation, and backend authentication remain open.
-- UTF-8 LaTeX source files are authoritative. Student editing transactions change manuscript text; model analysis and proposals do not. Generated annotations, history, and revision drafts belong in a separate application-managed store, not in manuscript comments.
-- The local service owns project file access and keeps model credentials out of browser state, exports, and logs. The Cloudflare backend receives only source and context needed for the requested model work; it does not gain authority to mutate the manuscript.
-- Keep source editing and persistence independent of model availability. Guard source operations against stale or ambiguous targets and external changes detected between operations, and preserve drafts when analysis or a commit fails. Assume no concurrent source edits by other processes as recorded in [ADR-070](docs/adrs/implemented/ADR-070-assume-single-user-source-editing.md).
-- Treat project content and model responses as untrusted. Enforce the loopback, origin, path, and output-validation boundaries in the feature contract. The accepted concurrent ancestor-directory replacement limitation is recorded in [ADR-071](docs/adrs/implemented/ADR-071-accept-local-path-replacement-race.md).
-- Keep the local companion and filesystem access in `local/`, separate from the Web-standards-only Worker. The application-managed draft store lives under `~/Library/Application Support/Thesis Revision Helper/`; source files remain in the selected project. The browser build emits only to ignored `public/assets/`; source saves use temporary sibling files before replacement.
+- Use a single-user browser interface for one pasted LaTeX document at a time. The student copies the result back to their external file; the app does not access that file directly or detect external edits.
+- Keep the working copy and revision drafts in browser `localStorage` for recovery, with explicit failure handling. This storage is not a backup. Generated analysis remains separate from manuscript text.
+- Student editing transactions change the working copy; model analysis and proposals do not. Keep editing independent of model availability, guard commits against stale or ambiguous targets, and preserve drafts on failure.
+- Connect directly to a configured, credential-free loopback model service and send only necessary source and context. Validate endpoints and model output; treat manuscript and model content as untrusted.
+- Serve the workspace and its static assets from the existing Worker without sending manuscript state through it. Browser modules build to ignored `public/assets/`; the bundled sample is available in the app without a separate launcher.
 
 ## Global Rules
 

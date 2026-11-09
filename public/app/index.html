@@ -10,25 +10,39 @@
   <body>
     <header class="topbar">
       <h1>Thesis Revision Helper</h1>
-      <p id="project-label">No project open</p>
+      <p id="project-label">No document open</p>
     </header>
     <main>
-      <form id="open-form" class="open-form">
-        <label for="project-path">Project directory</label>
-        <input id="project-path" name="path" type="text" placeholder="/path/to/project" autocomplete="off" required disabled />
-        <button id="open-project" type="submit" disabled>Open project</button>
-      </form>
-      <p id="provider-status" role="status">Checking model configuration…</p>
+      <details class="document-input" id="document-input" open>
+        <summary>Paste a LaTeX document</summary>
+        <form id="open-form" class="open-form">
+          <label for="pasted-source">Copy one file from your editor and paste it here.</label>
+          <textarea id="pasted-source" spellcheck="false" required></textarea>
+          <div class="actions">
+            <button type="submit">Open pasted text</button><button id="load-sample" type="button">Try the sample</button>
+          </div>
+        </form>
+      </details>
+      <details class="model-settings">
+        <summary>AI connection</summary>
+        <form id="model-form" class="model-form">
+          <label for="model-endpoint">Local endpoint</label>
+          <input id="model-endpoint" type="url" value="http://127.0.0.1:1234/v1/chat/completions" required />
+          <label for="model-name">Model name</label>
+          <input id="model-name" type="text" placeholder="Model installed locally" required />
+          <button type="submit">Use model</button><button id="disconnect-model" type="button">Disconnect</button>
+        </form>
+        <p>When enabled, the selected passage and nearby context are sent to this local model.</p>
+      </details>
+      <p id="provider-status" role="status">No model configured · local editing available</p>
       <p id="error" role="alert" class="error"></p>
       <p id="notice" role="status" class="notice"></p>
       <section id="empty" class="empty">
-        <h2>Open a LaTeX project</h2>
-        <p>Enter the local project directory to inspect its source and paragraph purposes.</p>
+        <h2>Start with one LaTeX file</h2>
+        <p>Paste your source above or try the sample. Your working copy stays in this browser.</p>
       </section>
       <div id="workspace" class="workspace" hidden>
-        <aside class="sidebar" aria-label="Project files">
-          <h2>Files</h2>
-          <nav id="files" aria-label="Files"></nav>
+        <aside class="sidebar" aria-label="Saved drafts">
           <h2>Saved drafts</h2>
           <div id="recovery"></div>
         </aside>
@@ -39,11 +53,13 @@
               <p id="file-label"></p>
             </div>
             <div class="actions">
-              <span id="save-status" role="status"></span><button id="undo" type="button" disabled>Undo revision</button>
+              <span id="save-status" role="status"></span><button id="copy-source" type="button">Copy source</button
+              ><button id="undo" type="button" disabled>Undo revision</button>
             </div>
           </div>
           <label class="sr-only" for="source">LaTeX source</label>
           <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          <p class="copy-reminder">Copy the source back to your LaTeX file when you are ready. The app does not change that file.</p>
           <p id="diagnostics" class="warning" role="status"></p>
           <div id="revision-actions" class="revision-actions">
             <span>Revise selected paragraph:</span>

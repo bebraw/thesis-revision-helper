@@ -1,6 +1,6 @@
 # ADR-069: Use a Local Companion and Cloudflare Backend
 
-**Status:** Accepted
+**Status:** Superseded by [ADR-073](../implemented/ADR-073-use-a-browser-working-copy.md)
 
 **Date:** 2026-11-06
 

@@ -29,3 +29,12 @@ test("serves the generated stylesheet", async ({ request }) => {
   expect(response.headers()["content-type"]).toContain("text/css");
   await expect(response.text()).resolves.toContain("--color-app-canvas:#f3eee6");
 });
+
+test("serves the thesis workspace and its browser module", async ({ page }) => {
+  await page.goto("/app/");
+
+  await expect(page.getByRole("heading", { level: 1, name: "Thesis Revision Helper" })).toBeVisible();
+  const module = await page.request.get("/assets/browser/workspace.js");
+  expect(module.ok()).toBe(true);
+  expect(module.headers()["content-type"]).toContain("javascript");
+});

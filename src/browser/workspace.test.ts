@@ -13,6 +13,47 @@ const file = {
 };
 
 describe("workspace controller", () => {
+  it("does not let an older analysis failure replace a newer result", async () => {
+    let rejectFirst: ((error: Error) => void) | undefined;
+    let analyses = 0;
+    const request: WorkspaceRequest = async (path) => {
+      if (path === "/api/open") return file;
+      if (path.startsWith("/api/revisions?")) return { revisions: [] };
+      if (path === "/api/analysis") {
+        analyses += 1;
+        if (analyses === 1)
+          return new Promise((_, reject) => {
+            rejectFirst = reject;
+          });
+        return { purpose: "Explains the finding.", version: "v1" };
+      }
+      throw new Error(`Unexpected request ${path}`);
+    };
+    const workspace = createWorkspace(request, () => {});
+    await workspace.openText("Original.");
+    const oldRequest = workspace.analyse();
+    await Promise.resolve();
+    await workspace.analyse();
+    rejectFirst?.(new Error("Old model failed"));
+    await oldRequest;
+    expect(workspace.state.purpose).toBe("Explains the finding.");
+    expect(workspace.state.analysisStatus).toBe("Current · AI interpretation");
+    workspace.dispose();
+  });
+  it("opens pasted source without treating it as a filesystem path", async () => {
+    const request: WorkspaceRequest = async (path, body) => {
+      if (path === "/api/open") {
+        expect(body).toEqual({ text: "Original." });
+        return file;
+      }
+      if (path.startsWith("/api/revisions?")) return { revisions: [] };
+      throw new Error(`Unexpected request ${path}`);
+    };
+    const workspace = createWorkspace(request, () => {});
+    await workspace.openText("Original.");
+    expect(workspace.state.text).toBe("Original.");
+    workspace.dispose();
+  });
   it("saves source edits and commits only the student's revision", async () => {
     const paths: string[] = [];
     const changedFile = { ...file, text: "Changed.", version: "v2", paragraphs: [{ start: 0, end: 8, text: "Changed.", safe: true }] };

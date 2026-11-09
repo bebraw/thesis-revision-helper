@@ -1,6 +1,6 @@
 > **Project:** Thesis Revision Helper is a local-first LaTeX writing assistant for students who have completed their research and need help presenting their ideas clearly. Its early vertical slice is under development; the inherited Worker remains a separate starter stub.
 >
-> **Product context:** Read [`specs/thesis-revision/spec.md`](./specs/thesis-revision/spec.md) for the current vertical slice, full first-release contract, and deferred work. Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) and [ADR-069](./docs/adrs/accepted/ADR-069-local-companion-and-cloudflare-backend.md) for the planned local companion and Cloudflare backend boundaries. LaTeX source remains authoritative and only the student commits manuscript changes.
+> **Product context:** Read [`specs/thesis-revision/spec.md`](./specs/thesis-revision/spec.md) for the current vertical slice, full first-release contract, and deferred work. Read [`ARCHITECTURE.md`](./ARCHITECTURE.md) and [ADR-073](./docs/adrs/implemented/ADR-073-use-a-browser-working-copy.md) for the browser working-copy and local-model boundaries. The student copies changes back to their authoritative LaTeX source.
 >
 > **Platform Baseline:** Local development and local CI in this repo target macOS. Treat other platforms as out of scope unless the user explicitly asks to broaden support.
 >

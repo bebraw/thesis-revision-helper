@@ -16,8 +16,11 @@
     },
   },
   "build": {
-    "command": "npm run build:css",
+    "command": "npm run build",
     "watch_dir": "src",
+  },
+  "assets": {
+    "directory": "./public",
   },
   "rules": [
     {

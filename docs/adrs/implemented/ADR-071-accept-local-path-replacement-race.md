@@ -1,6 +1,6 @@
 # ADR-071: Accept Local Path-Replacement Race
 
-**Status:** Implemented
+**Status:** Superseded by [ADR-073](ADR-073-use-a-browser-working-copy.md)
 
 **Date:** 2026-11-06
 

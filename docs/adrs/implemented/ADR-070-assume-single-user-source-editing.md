@@ -1,6 +1,6 @@
 # ADR-070: Assume Single-User Source Editing
 
-**Status:** Implemented
+**Status:** Superseded by [ADR-073](ADR-073-use-a-browser-working-copy.md)
 
 **Date:** 2026-11-06
 
